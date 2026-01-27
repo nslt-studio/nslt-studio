@@ -1,7 +1,3 @@
-const getSwiperDirection = () => {
-  return window.innerWidth >= 992 ? "horizontal" : "vertical";
-};
-
 const initWorkDetail = () => {
   const swiperEl = document.querySelector(".swiper");
   if (!swiperEl) return;
@@ -44,6 +40,9 @@ const initWorkDetail = () => {
   /* ============================================================
    * 3. INIT / REINIT SWIPER
    * ============================================================ */
+  const getSwiperDirection = () => {
+    return window.innerWidth >= 992 ? "horizontal" : "vertical";
+  };
 
   let swiper = null;
   let currentDirection = getSwiperDirection();
