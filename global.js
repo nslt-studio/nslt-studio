@@ -1,127 +1,87 @@
-const getSwiperDirection = () => {
-  return window.innerWidth >= 992 ? "horizontal" : "vertical";
-};
-
-const initWorkDetail = () => {
-  const swiperEl = document.querySelector(".swiper");
-  if (!swiperEl) return;
-
+const initGlobal = () => {
   /* ============================================================
-   * 0. REMOVE WEBFLOW CONDITIONAL ELEMENTS
+   * 1. MEDIA FADE-IN (IMG + VIDEO)
    * ============================================================ */
 
-  swiperEl
-    .querySelectorAll(".w-condition-invisible")
-    .forEach((el) => el.remove());
+  const medias = document.querySelectorAll("img, video");
 
-  const wrapper = swiperEl.querySelector(".swiper-wrapper");
-  let slides = Array.from(wrapper?.querySelectorAll(".swiper-slide") || []);
+  medias.forEach((media) => {
+    // Images
+    if (media.tagName === "IMG") {
+      if (media.complete) {
+        media.style.opacity = "1";
+      } else {
+        media.addEventListener("load", () => {
+          media.style.opacity = "1";
+        });
+      }
+    }
 
-  if (!wrapper || !slides.length) return;
+    // Videos
+    if (media.tagName === "VIDEO") {
+      if (media.readyState >= 1) {
+        media.style.opacity = "1";
+      } else {
+        media.addEventListener("loadedmetadata", () => {
+          media.style.opacity = "1";
+        });
+      }
+    }
+  });
 
   /* ============================================================
-   * 1. RANDOMIZE SLIDE ORDER (ONCE)
+   * 2. VIDEO PLAY / PAUSE ON VIEWPORT
    * ============================================================ */
 
-  for (let i = slides.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [slides[i], slides[j]] = [slides[j], slides[i]];
+  const videos = document.querySelectorAll("video");
+
+  const videoObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    },
+    {
+      threshold: 0.2,
+    }
+  );
+
+  videos.forEach((video) => {
+    videoObserver.observe(video);
+  });
+
+  /* ============================================================
+   * 3. TIME (PARIS) + YEAR
+   * ============================================================ */
+
+  const timeEl = document.getElementById("time");
+  const yearEl = document.getElementById("year");
+
+  if (timeEl) {
+    const updateTime = () => {
+      const now = new Date();
+
+      const formatter = new Intl.DateTimeFormat("fr-FR", {
+        timeZone: "Europe/Paris",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      timeEl.textContent = `${formatter.format(now)} CET`;
+    };
+
+    updateTime();
+    setInterval(updateTime, 1000);
   }
 
-  slides.forEach((slide) => wrapper.appendChild(slide));
-
-  /* ============================================================
-   * 2. DRAGGING STATE
-   * ============================================================ */
-
-  const setDraggingState = (isDragging) => {
-    wrapper.style.cursor = isDragging ? "grabbing" : "grab";
-    slides.forEach((slide) => {
-      slide.style.opacity = isDragging ? "0.4" : "0.2";
-    });
-  };
-
-  /* ============================================================
-   * 3. INIT / REINIT SWIPER
-   * ============================================================ */
-
-  let swiper = null;
-  let currentDirection = getSwiperDirection();
-
-  const initSwiper = () => {
-    swiper = new Swiper(swiperEl, {
-      direction: currentDirection,
-      slidesPerView: "auto",
-      centeredSlides: true,
-      speed: 225,
-      loop: true,
-      keyboard: true,
-      navigation: {
-        nextEl: ".swiper-next",
-        prevEl: ".swiper-prev",
-      },
-      on: {
-        touchStart: () => setDraggingState(true),
-        touchEnd: () => setDraggingState(false),
-        sliderMove: () => setDraggingState(true),
-        transitionEnd: () => setDraggingState(false),
-      },
-    });
-
-    requestAnimationFrame(() => swiper.update());
-  };
-
-  initSwiper();
-
-  /* ============================================================
-   * 4. HANDLE RESIZE (BREAKPOINT SWITCH)
-   * ============================================================ */
-
-  const onResize = () => {
-    const newDirection = getSwiperDirection();
-    if (newDirection === currentDirection) return;
-
-    currentDirection = newDirection;
-
-    if (swiper) {
-      swiper.destroy(true, true);
-      swiper = null;
-    }
-
-    initSwiper();
-  };
-
-  window.addEventListener("resize", onResize);
-
-  /* ============================================================
-   * 5. ESC KEY SUPPORT → TRIGGER #close
-   * ============================================================ */
-
-  const closeLink = document.querySelector("#close");
-  if (!closeLink) return;
-
-  const onKeyDown = (e) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeLink.click();
-    }
-  };
-
-  document.addEventListener("keydown", onKeyDown);
-
-  /* ============================================================
-   * 6. CLEANUP ON PAGE LEAVE (CRUCIAL)
-   * ============================================================ */
-
-  if (window.swup) {
-    swup.hooks.once("page:view", () => {
-      document.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("resize", onResize);
-
-      if (swiper) {
-        swiper.destroy(true, true);
-        swiper = null;
-      }
-    });
+  if (yearEl) {
+    yearEl.textContent = `©${new Date().getFullYear()}`;
   }
 };
