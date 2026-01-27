@@ -1,9 +1,13 @@
+const getSwiperDirection = () => {
+  return window.innerWidth >= 992 ? "horizontal" : "vertical";
+};
+
 const initWorkDetail = () => {
   const swiperEl = document.querySelector(".swiper");
   if (!swiperEl) return;
 
   /* ============================================================
-   * 0. REMOVE WEBFLOW CONDITIONAL ELEMENTS (CRUCIAL)
+   * 0. REMOVE WEBFLOW CONDITIONAL ELEMENTS
    * ============================================================ */
 
   swiperEl
@@ -16,7 +20,7 @@ const initWorkDetail = () => {
   if (!wrapper || !slides.length) return;
 
   /* ============================================================
-   * 1. RANDOMIZE SLIDE ORDER
+   * 1. RANDOMIZE SLIDE ORDER (ONCE)
    * ============================================================ */
 
   for (let i = slides.length - 1; i > 0; i--) {
@@ -33,39 +37,61 @@ const initWorkDetail = () => {
   const setDraggingState = (isDragging) => {
     wrapper.style.cursor = isDragging ? "grabbing" : "grab";
     slides.forEach((slide) => {
-      slide.style.opacity = isDragging ? "0.2" : "0";
+      slide.style.opacity = isDragging ? "0.4" : "0.2";
     });
   };
 
   /* ============================================================
-   * 3. INIT SWIPER (AFTER DOM IS CLEAN)
+   * 3. INIT / REINIT SWIPER
    * ============================================================ */
 
-  const swiper = new Swiper(swiperEl, {
-    slidesPerView: "auto",
-    centeredSlides: true,
-    speed: 225,
-    loop: true,
-    keyboard: true,
-    navigation: {
-      nextEl: ".swiper-next",
-      prevEl: ".swiper-prev",
-    },
-    on: {
-      touchStart: () => setDraggingState(true),
-      touchEnd: () => setDraggingState(false),
-      sliderMove: () => setDraggingState(true),
-      transitionEnd: () => setDraggingState(false),
-    },
-  });
+  let swiper = null;
+  let currentDirection = getSwiperDirection();
+
+  const initSwiper = () => {
+    swiper = new Swiper(swiperEl, {
+      direction: currentDirection,
+      slidesPerView: "auto",
+      centeredSlides: true,
+      speed: 225,
+      loop: true,
+      keyboard: true,
+      navigation: {
+        nextEl: ".swiper-next",
+        prevEl: ".swiper-prev",
+      },
+      on: {
+        touchStart: () => setDraggingState(true),
+        touchEnd: () => setDraggingState(false),
+        sliderMove: () => setDraggingState(true),
+        transitionEnd: () => setDraggingState(false),
+      },
+    });
+
+    requestAnimationFrame(() => swiper.update());
+  };
+
+  initSwiper();
 
   /* ============================================================
-   * 4. FORCE FINAL CALCULATION
+   * 4. HANDLE RESIZE (BREAKPOINT SWITCH)
    * ============================================================ */
 
-  requestAnimationFrame(() => {
-    swiper.update();
-  });
+  const onResize = () => {
+    const newDirection = getSwiperDirection();
+    if (newDirection === currentDirection) return;
+
+    currentDirection = newDirection;
+
+    if (swiper) {
+      swiper.destroy(true, true);
+      swiper = null;
+    }
+
+    initSwiper();
+  };
+
+  window.addEventListener("resize", onResize);
 
   /* ============================================================
    * 5. ESC KEY SUPPORT → TRIGGER #close
@@ -83,9 +109,19 @@ const initWorkDetail = () => {
 
   document.addEventListener("keydown", onKeyDown);
 
+  /* ============================================================
+   * 6. CLEANUP ON PAGE LEAVE (CRUCIAL)
+   * ============================================================ */
+
   if (window.swup) {
     swup.hooks.once("page:view", () => {
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onResize);
+
+      if (swiper) {
+        swiper.destroy(true, true);
+        swiper = null;
+      }
     });
   }
 };
