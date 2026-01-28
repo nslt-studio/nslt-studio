@@ -13,9 +13,9 @@ const getNamespace = () => document.querySelector("#swup")?.dataset.namespace;
 const getLogoWidthForViewport = () => {
   const w = window.innerWidth;
 
-  if (w >= 992) return "16.6667%";
-  if (w >= 768) return "33.3334%";
-  return "60%";
+  if (w >= 992) return "25%";
+  if (w >= 768) return "37.5%";
+  return "50%";
 };
 
 /* ============================================================
@@ -200,5 +200,4 @@ swup.hooks.on("page:view", () => {
   initPage();
 });
 
-// first load
 initPage();
