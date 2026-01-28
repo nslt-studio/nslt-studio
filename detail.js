@@ -33,7 +33,7 @@ const initWorkDetail = () => {
   const setDraggingState = (isDragging) => {
     wrapper.style.cursor = isDragging ? "grabbing" : "grab";
     slides.forEach((slide) => {
-      slide.style.opacity = isDragging ? "0.4" : "0.2";
+      slide.style.opacity = isDragging ? "0.2" : "0";
     });
   };
 
