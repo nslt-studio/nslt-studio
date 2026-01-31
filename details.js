@@ -86,35 +86,17 @@ const initWorkDetail = () => {
       swiper.destroy(true, true);
       swiper = null;
     }
-
     initSwiper();
   };
 
   window.addEventListener("resize", onResize);
 
   /* ============================================================
-   * 5. ESC KEY SUPPORT → TRIGGER #close
-   * ============================================================ */
-
-  const closeLink = document.querySelector("#close");
-  if (!closeLink) return;
-
-  const onKeyDown = (e) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeLink.click();
-    }
-  };
-
-  document.addEventListener("keydown", onKeyDown);
-
-  /* ============================================================
-   * 6. CLEANUP ON PAGE LEAVE (CRUCIAL)
+   * 5. CLEANUP ON PAGE LEAVE (CRUCIAL)
    * ============================================================ */
 
   if (window.swup) {
     swup.hooks.once("page:view", () => {
-      document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("resize", onResize);
 
       if (swiper) {
