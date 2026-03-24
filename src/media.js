@@ -15,10 +15,19 @@ export function initMedia() {
     }
   })
 
-  // Videos — reveal on first frame, play/pause on viewport
+  // Videos — lazy-load src on viewport enter, reveal on first frame, play/pause on viewport
   viewportObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      entry.isIntersecting ? entry.target.play() : entry.target.pause()
+      const video = entry.target
+      if (entry.isIntersecting) {
+        if (video.dataset.src && !video.src) {
+          video.src = video.dataset.src
+          video.load()
+        }
+        video.play()
+      } else {
+        video.pause()
+      }
     })
   }, { threshold: 0.2 })
 

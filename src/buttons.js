@@ -3,6 +3,7 @@ import * as state from './state.js'
 let clockInterval      = null
 let isHoveringServices = false
 let defaultFirstText   = null   // captured once on first non-details page load
+let frozen             = false  // true once a details link is clicked — blocks mouseleave resets
 
 export function initButtons() {
   if (clockInterval) {
@@ -10,6 +11,7 @@ export function initButtons() {
     clockInterval = null
   }
   isHoveringServices = false
+  frozen             = false
 
   const yearEl = document.getElementById('currentYear')
   if (yearEl) yearEl.textContent = new Date().getFullYear()
@@ -56,27 +58,32 @@ export function initButtons() {
     if (!isHoveringServices && secondP) secondP.textContent = getCETTime()
   }, 1000)
 
-  // data-name → #first
-  document.querySelectorAll('[data-name]').forEach(el => {
-    el.addEventListener('mouseenter', () => swap(first, firstP, el.dataset.name))
-    el.addEventListener('mouseleave', () => swap(first, firstP, defaultFirstText))
-  })
+  if (window.matchMedia('(hover: hover)').matches) {
+    // data-name → #first
+    document.querySelectorAll('[data-name]').forEach(el => {
+      el.addEventListener('mouseenter', () => { if (!frozen) swap(first, firstP, el.dataset.name) })
+      el.addEventListener('mouseleave', () => { if (!frozen) swap(first, firstP, defaultFirstText) })
+    })
 
-  // data-services → #second
-  document.querySelectorAll('[data-services]').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      isHoveringServices = true
-      swap(second, secondP, el.dataset.services)
+    // data-services → #second
+    document.querySelectorAll('[data-services]').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        if (frozen) return
+        isHoveringServices = true
+        swap(second, secondP, el.dataset.services)
+      })
+      el.addEventListener('mouseleave', () => {
+        if (frozen) return
+        isHoveringServices = false
+        swap(second, secondP, getCETTime())
+      })
     })
-    el.addEventListener('mouseleave', () => {
-      isHoveringServices = false
-      swap(second, secondP, getCETTime())
-    })
-  })
+  }
 }
 
 // Called immediately on click toward a details page
 export function applyDetailsButtons(name, services) {
+  frozen = true
   if (clockInterval) {
     clearInterval(clockInterval)
     clockInterval = null
@@ -89,8 +96,14 @@ export function applyDetailsButtons(name, services) {
   const firstP  = first.querySelector('p')
   const secondP = second.querySelector('p')
 
-  if (firstP  && name)     swap(first,  firstP,  name)
-  if (secondP && services) swap(second, secondP, services)
+  if (firstP && name) {
+    firstP.textContent = name
+    first.style.width  = measureWidth(first, name) + 'px'
+  }
+  if (secondP && services) {
+    secondP.textContent = services
+    second.style.width  = measureWidth(second, services) + 'px'
+  }
 }
 
 // Called immediately when the user clicks away from details

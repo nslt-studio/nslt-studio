@@ -1,4 +1,5 @@
 import EmblaCarousel from 'embla-carousel'
+import AutoScroll from 'embla-carousel-auto-scroll'
 import { previousUrl } from '../state.js'
 
 export function initDetails() {
@@ -23,19 +24,17 @@ function initSlider() {
     }
   }
 
-  const embla = EmblaCarousel(viewport, { loop: true, align: 'center' })
+  const embla = EmblaCarousel(viewport, { loop: true, dragFree: true }, [AutoScroll({ speed: 0.5, startDelay: 300, stopOnInteraction: true })])
 
-  const prev = root.querySelector('.embla__prev')
-  const next = root.querySelector('.embla__next')
-
-  if (prev) prev.addEventListener('click', () => embla.scrollPrev())
-  if (next) next.addEventListener('click', () => embla.scrollNext())
-
-  const slides = embla.slideNodes()
-  const updateActive = () => {
-    const index = embla.selectedScrollSnap()
-    slides.forEach((s, i) => s.classList.toggle('active', i === index))
-  }
-  embla.on('select', updateActive)
-  updateActive()
+  embla.on('pointerUp', () => {
+    let timer = null
+    const onScroll = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        embla.off('scroll', onScroll)
+        embla.plugins().autoScroll.play()
+      }, 50)
+    }
+    embla.on('scroll', onScroll)
+  })
 }
