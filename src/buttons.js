@@ -2,14 +2,11 @@ import * as state from './state.js'
 
 let clockInterval      = null
 let isHoveringServices = false
-let defaultFirstText   = null   // captured once on first non-details page load
-let frozen             = false  // true once a details link is clicked — blocks mouseleave resets
+let defaultFirstText   = null
+let frozen             = false
 
 export function initButtons() {
-  if (clockInterval) {
-    clearInterval(clockInterval)
-    clockInterval = null
-  }
+  if (clockInterval) { clearInterval(clockInterval); clockInterval = null }
   isHoveringServices = false
   frozen             = false
 
@@ -59,13 +56,11 @@ export function initButtons() {
   }, 1000)
 
   if (window.matchMedia('(hover: hover)').matches) {
-    // data-name → #first
+    // Desktop — hover
     document.querySelectorAll('[data-name]').forEach(el => {
       el.addEventListener('mouseenter', () => { if (!frozen) swap(first, firstP, el.dataset.name) })
       el.addEventListener('mouseleave', () => { if (!frozen) swap(first, firstP, defaultFirstText) })
     })
-
-    // data-services → #second
     document.querySelectorAll('[data-services]').forEach(el => {
       el.addEventListener('mouseenter', () => {
         if (frozen) return
@@ -76,6 +71,18 @@ export function initButtons() {
         if (frozen) return
         isHoveringServices = false
         swap(second, secondP, getCETTime())
+      })
+    })
+  } else {
+    // Mobile/tablet — click
+    document.querySelectorAll('[data-name]').forEach(el => {
+      el.addEventListener('click', () => { if (!frozen) swap(first, firstP, el.dataset.name) })
+    })
+    document.querySelectorAll('[data-services]').forEach(el => {
+      el.addEventListener('click', () => {
+        if (frozen) return
+        isHoveringServices = true
+        swap(second, secondP, el.dataset.services)
       })
     })
   }

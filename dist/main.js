@@ -41,11 +41,11 @@ function q() {
     return e;
   }, q.apply(null, arguments);
 }
-const de = (e, t) => String(e).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[^\w-]+/g, "").replace(/--+/g, "-").replace(/^-+|-+$/g, "") || t || "", yt = ({ hash: e } = {}) => window.location.pathname + window.location.search + (e ? window.location.hash : ""), Fe = (e, t = {}) => {
-  const n = q({ url: e = e || yt({ hash: !0 }), random: Math.random(), source: "swup" }, t);
+const de = (e, t) => String(e).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[^\w-]+/g, "").replace(/--+/g, "-").replace(/^-+|-+$/g, "") || t || "", St = ({ hash: e } = {}) => window.location.pathname + window.location.search + (e ? window.location.hash : ""), Fe = (e, t = {}) => {
+  const n = q({ url: e = e || St({ hash: !0 }), random: Math.random(), source: "swup" }, t);
   window.history.pushState(n, "", e);
-}, vt = (e = null, t = {}) => {
-  e = e || yt({ hash: !0 });
+}, wt = (e = null, t = {}) => {
+  e = e || St({ hash: !0 });
   const n = q({}, window.history.state || {}, { url: e, random: Math.random(), source: "swup" }, t);
   window.history.replaceState(n, "", e);
 }, Ne = (e, t, n, o) => {
@@ -67,7 +67,7 @@ class R extends URL {
     return new R(t);
   }
 }
-class Lt extends Error {
+class It extends Error {
   constructor(t, n) {
     super(t), this.url = void 0, this.status = void 0, this.aborted = void 0, this.timedOut = void 0, this.name = "FetchError", this.url = n.url, this.status = n.status, this.aborted = n.aborted || !1, this.timedOut = n.timedOut || !1;
   }
@@ -84,11 +84,11 @@ async function Ue(e, t = {}) {
   try {
     a = await this.hooks.call("fetch:request", o, { url: e, options: t }, (g, { url: p, options: v }) => fetch(p, v)), d && clearTimeout(d);
   } catch (g) {
-    throw l ? (this.hooks.call("fetch:timeout", o, { url: e }), new Lt(`Request timed out: ${e}`, { url: e, timedOut: l })) : (g == null ? void 0 : g.name) === "AbortError" || c.aborted ? new Lt(`Request aborted: ${e}`, { url: e, aborted: !0 }) : g;
+    throw l ? (this.hooks.call("fetch:timeout", o, { url: e }), new It(`Request timed out: ${e}`, { url: e, timedOut: l })) : (g == null ? void 0 : g.name) === "AbortError" || c.aborted ? new It(`Request aborted: ${e}`, { url: e, aborted: !0 }) : g;
   }
   const { status: u, url: f } = a, w = await a.text();
-  if (u === 500) throw this.hooks.call("fetch:error", o, { status: u, response: a, url: f }), new Lt(`Server error: ${f}`, { status: u, url: f });
-  if (!w) throw new Lt(`Empty response: ${f}`, { status: u, url: f });
+  if (u === 500) throw this.hooks.call("fetch:error", o, { status: u, response: a, url: f }), new It(`Server error: ${f}`, { status: u, url: f });
+  if (!w) throw new It(`Empty response: ${f}`, { status: u, url: f });
   const { url: h } = R.fromUrl(f), m = { url: h, html: w };
   return !o.cache.write || t.method && t.method !== "GET" || e !== h || this.cache.set(m.url, m), m;
 }
@@ -322,7 +322,7 @@ const ze = (e) => {
   const t = decodeURIComponent(e);
   let n = document.getElementById(e) || document.getElementById(t) || Ht(`a[name='${CSS.escape(e)}']`) || Ht(`a[name='${CSS.escape(t)}']`);
   return n || e !== "top" || (n = document.body), n;
-}, It = "transition", Vt = "animation";
+}, At = "transition", Vt = "animation";
 async function We({ selector: e, elements: t }) {
   if (e === !1 && !t) return;
   let n = [];
@@ -330,8 +330,8 @@ async function We({ selector: e, elements: t }) {
   else if (e && (n = zt(e, document.body), !n.length)) return void console.warn(`[swup] No elements found matching animationSelector \`${e}\``);
   const o = n.map((s) => (function(i) {
     const { type: r, timeout: c, propCount: a } = (function(l) {
-      const d = window.getComputedStyle(l), u = At(d, `${It}Delay`), f = At(d, `${It}Duration`), w = re(u, f), h = At(d, `${Vt}Delay`), m = At(d, `${Vt}Duration`), g = re(h, m), p = Math.max(w, g), v = p > 0 ? w > g ? It : Vt : null;
-      return { type: v, timeout: p, propCount: v ? v === It ? f.length : m.length : 0 };
+      const d = window.getComputedStyle(l), u = Tt(d, `${At}Delay`), f = Tt(d, `${At}Duration`), w = re(u, f), h = Tt(d, `${Vt}Delay`), m = Tt(d, `${Vt}Duration`), g = re(h, m), p = Math.max(w, g), v = p > 0 ? w > g ? At : Vt : null;
+      return { type: v, timeout: p, propCount: v ? v === At ? f.length : m.length : 0 };
     })(i);
     return !(!r || !c) && new Promise((l) => {
       const d = `${r}end`, u = performance.now();
@@ -348,7 +348,7 @@ async function We({ selector: e, elements: t }) {
   })(s));
   o.filter(Boolean).length > 0 ? await Promise.all(o) : e && console.warn(`[swup] No CSS animation duration defined on elements matching \`${e}\``);
 }
-function At(e, t) {
+function Tt(e, t) {
   return (e[t] || "").split(", ");
 }
 function re(e, t) {
@@ -387,7 +387,7 @@ async function _e(e, t = {}) {
       e.advance(5), e.to.html = l, e.to.document = new DOMParser().parseFromString(l, "text/html");
     });
     const a = e.to.url + e.to.hash;
-    if (e.history.popstate || (e.history.action === "replace" || e.to.url === this.location.url ? vt(a) : (this.currentHistoryIndex++, Fe(a, { index: this.currentHistoryIndex }))), this.location = R.fromUrl(a), e.history.popstate && this.classes.add("is-popstate"), e.animation.name && this.classes.add(`to-${de(e.animation.name)}`), e.animation.wait && await c, e.done || (await this.hooks.call("visit:transition", e, void 0, async () => {
+    if (e.history.popstate || (e.history.action === "replace" || e.to.url === this.location.url ? wt(a) : (this.currentHistoryIndex++, Fe(a, { index: this.currentHistoryIndex }))), this.location = R.fromUrl(a), e.history.popstate && this.classes.add("is-popstate"), e.animation.name && this.classes.add(`to-${de(e.animation.name)}`), e.animation.wait && await c, e.done || (await this.hooks.call("visit:transition", e, void 0, async () => {
       if (!e.animation.animate) return await this.hooks.call("animation:skip", void 0), void await this.renderPage(e, await c);
       e.advance(4), await this.animatePageOut(e), e.animation.native && document.startViewTransition ? await document.startViewTransition(async () => await this.renderPage(e, await c)).finished : await this.renderPage(e, await c), await this.animatePageIn(e);
     }), e.done)) return;
@@ -438,7 +438,7 @@ const Ke = async function(e) {
   if (e.done) return;
   e.advance(6);
   const { url: n } = t;
-  this.isSameResolvedUrl(yt(), n) || (vt(n), this.location = R.fromUrl(n), e.to.url = this.location.url, e.to.hash = this.location.hash), await this.hooks.call("content:replace", e, { page: t }, (o, {}) => {
+  this.isSameResolvedUrl(St(), n) || (wt(n), this.location = R.fromUrl(n), e.to.url = this.location.url, e.to.hash = this.location.hash), await this.hooks.call("content:replace", e, { page: t }, (o, {}) => {
     if (this.classes.remove("is-leaving"), o.animation.animate && this.classes.add("is-rendering"), !this.replaceContent(o)) throw new Error("[swup] Container mismatch, aborting");
     o.animation.animate && (this.classes.add("is-changing", "is-animating", "is-rendering"), o.animation.name && this.classes.add(`to-${de(o.animation.name)}`));
   }), await this.hooks.call("content:scroll", e, void 0, () => this.scrollToContent(e)), await this.hooks.call("page:view", e, { url: this.location.url, title: document.title });
@@ -475,7 +475,7 @@ class rn {
   constructor(t = {}) {
     var n, o;
     this.version = "4.8.3", this.options = void 0, this.defaults = sn, this.plugins = [], this.visit = void 0, this.cache = void 0, this.hooks = void 0, this.classes = void 0, this.location = R.fromUrl(window.location.href), this.currentHistoryIndex = void 0, this.clickDelegate = void 0, this.navigating = !1, this.onVisitEnd = void 0, this.use = Ze, this.unuse = tn, this.findPlugin = en, this.log = () => {
-    }, this.navigate = Ge, this.performNavigation = _e, this.createVisit = Re, this.delegateEvent = Ne, this.fetchPage = Ue, this.awaitAnimations = We, this.renderPage = Je, this.replaceContent = Qe, this.animatePageIn = Ye, this.animatePageOut = Ke, this.scrollToContent = Xe, this.getAnchorElement = ze, this.getCurrentUrl = yt, this.resolveUrl = nn, this.isSameResolvedUrl = on, this.options = q({}, this.defaults, t), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new Ve(this), this.classes = new $e(this), this.hooks = new je(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (n = (o = window.history.state) == null ? void 0 : o.index) != null ? n : 1, this.enable();
+    }, this.navigate = Ge, this.performNavigation = _e, this.createVisit = Re, this.delegateEvent = Ne, this.fetchPage = Ue, this.awaitAnimations = We, this.renderPage = Je, this.replaceContent = Qe, this.animatePageIn = Ye, this.animatePageOut = Ke, this.scrollToContent = Xe, this.getAnchorElement = ze, this.getCurrentUrl = St, this.resolveUrl = nn, this.isSameResolvedUrl = on, this.options = q({}, this.defaults, t), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new Ve(this), this.classes = new $e(this), this.hooks = new je(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (n = (o = window.history.state) == null ? void 0 : o.index) != null ? n : 1, this.enable();
   }
   async enable() {
     var t;
@@ -485,7 +485,7 @@ class rn {
       const [i, r] = this.hooks.parseName(o);
       this.hooks.on(i, s, r);
     }
-    ((t = window.history.state) == null ? void 0 : t.source) !== "swup" && vt(null, { index: this.currentHistoryIndex }), await fe(), await this.hooks.call("enable", void 0, void 0, () => {
+    ((t = window.history.state) == null ? void 0 : t.source) !== "swup" && wt(null, { index: this.currentHistoryIndex }), await fe(), await this.hooks.call("enable", void 0, void 0, () => {
       const o = document.documentElement;
       o.classList.add("swup-enabled"), o.classList.toggle("swup-native", this.options.native);
     });
@@ -509,16 +509,16 @@ class rn {
       var c;
       const a = (c = r.from.url) != null ? c : "";
       t.preventDefault(), s && s !== a ? this.isSameResolvedUrl(s, a) || this.performNavigation(r) : i ? this.hooks.callSync("link:anchor", r, { hash: i }, () => {
-        vt(s + i), this.scrollToContent(r);
+        wt(s + i), this.scrollToContent(r);
       }) : this.hooks.callSync("link:self", r, void 0, () => {
-        this.options.linkToSelf === "navigate" ? this.performNavigation(r) : (vt(s), this.scrollToContent(r));
+        this.options.linkToSelf === "navigate" ? this.performNavigation(r) : (wt(s), this.scrollToContent(r));
       });
     });
   }
   handlePopState(t) {
     var n, o, s, i;
     const r = (n = (o = t.state) == null ? void 0 : o.url) != null ? n : window.location.href;
-    if (this.options.skipPopStateHandling(t) || this.isSameResolvedUrl(yt(), this.location.url)) return;
+    if (this.options.skipPopStateHandling(t) || this.isSameResolvedUrl(St(), this.location.url)) return;
     const { url: c, hash: a } = R.fromUrl(r), l = this.createVisit({ to: c, hash: a, event: t });
     l.history.popstate = !0;
     const d = (s = (i = t.state) == null ? void 0 : i.index) != null ? s : 0;
@@ -558,37 +558,37 @@ function P(e) {
 function Gt(e) {
   return Math.sign(e);
 }
-function wt(e, t) {
+function yt(e, t) {
   return P(e - t);
 }
 function cn(e, t) {
   if (e === 0 || t === 0 || P(e) <= P(t)) return 0;
-  const n = wt(P(e), P(t));
+  const n = yt(P(e), P(t));
   return P(n / e);
 }
 function ln(e) {
   return Math.round(e * 100) / 100;
 }
-function St(e) {
-  return bt(e).map(Number);
+function bt(e) {
+  return Et(e).map(Number);
 }
 function J(e) {
-  return e[kt(e)];
+  return e[xt(e)];
 }
-function kt(e) {
+function xt(e) {
   return Math.max(0, e.length - 1);
 }
 function _t(e, t) {
-  return t === kt(e);
+  return t === xt(e);
 }
 function le(e, t = 0) {
   return Array.from(Array(e), (n, o) => t + o);
 }
-function bt(e) {
+function Et(e) {
   return Object.keys(e);
 }
 function me(e, t) {
-  return [e, t].reduce((n, o) => (bt(o).forEach((s) => {
+  return [e, t].reduce((n, o) => (Et(o).forEach((s) => {
     const i = n[s], r = o[s], c = ce(i) && ce(r);
     n[s] = c ? me(i, r) : r;
   }), n), {});
@@ -618,7 +618,7 @@ function un(e, t) {
     measure: r
   };
 }
-function Et() {
+function kt() {
   let e = [];
   function t(s, i, r, c = {
     passive: !0
@@ -642,7 +642,7 @@ function Et() {
   return o;
 }
 function dn(e, t, n, o) {
-  const s = Et(), i = 1e3 / 60;
+  const s = kt(), i = 1e3 / 60;
   let r = null, c = 0, a = 0;
   function l() {
     s.add(e, "visibilitychange", () => {
@@ -706,7 +706,7 @@ function fn(e, t) {
     direction: f
   };
 }
-function lt(e = 0, t = 0) {
+function dt(e = 0, t = 0) {
   const n = P(e - t);
   function o(l) {
     return l < e;
@@ -737,7 +737,7 @@ function lt(e = 0, t = 0) {
 function ge(e, t, n) {
   const {
     constrain: o
-  } = lt(0, e), s = e + 1;
+  } = dt(0, e), s = e + 1;
   let i = r(t);
   function r(f) {
     return n ? P((s + f) % s) : o(f);
@@ -768,7 +768,7 @@ function hn(e, t, n, o, s, i, r, c, a, l, d, u, f, w, h, m, g, p, v) {
     direction: L
   } = e, C = ["INPUT", "SELECT", "TEXTAREA"], I = {
     passive: !1
-  }, E = Et(), k = Et(), b = lt(50, 225).constrain(w.measure(20)), x = {
+  }, E = kt(), k = kt(), b = dt(50, 225).constrain(w.measure(20)), x = {
     mouse: 300,
     touch: 400
   }, A = {
@@ -776,7 +776,7 @@ function hn(e, t, n, o, s, i, r, c, a, l, d, u, f, w, h, m, g, p, v) {
     touch: 600
   }, M = h ? 43 : 25;
   let U = !1, $ = 0, B = 0, W = !1, j = !1, K = !1, Q = !1;
-  function st(y) {
+  function rt(y) {
     if (!v) return;
     function T(H) {
       (Pt(v) || v(y, H)) && nt(H);
@@ -806,19 +806,19 @@ function hn(e, t, n, o, s, i, r, c, a, l, d, u, f, w, h, m, g, p, v) {
   }
   function nt(y) {
     const T = Rt(y, o);
-    Q = T, K = h && T && !y.buttons && U, U = wt(s.get(), r.get()) >= 2, !(T && y.button !== 0) && (Y(y.target) || (W = !0, i.pointerDown(y), l.useFriction(0).useDuration(0), s.set(r), X(), $ = i.readPoint(y), B = i.readPoint(y, S), f.emit("pointerDown")));
+    Q = T, K = h && T && !y.buttons && U, U = yt(s.get(), r.get()) >= 2, !(T && y.button !== 0) && (Y(y.target) || (W = !0, i.pointerDown(y), l.useFriction(0).useDuration(0), s.set(r), X(), $ = i.readPoint(y), B = i.readPoint(y, S), f.emit("pointerDown")));
   }
   function N(y) {
     if (!Rt(y, o) && y.touches.length >= 2) return F(y);
-    const O = i.readPoint(y), H = i.readPoint(y, S), Z = wt(O, $), et = wt(H, B);
+    const O = i.readPoint(y), H = i.readPoint(y, S), Z = yt(O, $), et = yt(H, B);
     if (!j && !Q && (!y.cancelable || (j = Z > et, !j)))
       return F(y);
-    const it = i.pointerMove(y);
-    Z > m && (K = !0), l.useFriction(0.3).useDuration(0.75), c.start(), s.add(L(it)), y.preventDefault();
+    const at = i.pointerMove(y);
+    Z > m && (K = !0), l.useFriction(0.3).useDuration(0.75), c.start(), s.add(L(at)), y.preventDefault();
   }
   function F(y) {
-    const O = d.byDistance(0, !1).index !== u.get(), H = i.pointerUp(y) * _(), Z = tt(L(H), O), et = cn(H, Z), it = M - 10 * et, ot = p + et / 50;
-    j = !1, W = !1, k.clear(), l.useDuration(it).useFriction(ot), a.distance(Z, !h), Q = !1, f.emit("pointerUp");
+    const O = d.byDistance(0, !1).index !== u.get(), H = i.pointerUp(y) * _(), Z = tt(L(H), O), et = cn(H, Z), at = M - 10 * et, ot = p + et / 50;
+    j = !1, W = !1, k.clear(), l.useDuration(at).useFriction(ot), a.distance(Z, !h), Q = !1, f.emit("pointerUp");
   }
   function z(y) {
     K && (y.stopPropagation(), y.preventDefault(), K = !1);
@@ -827,7 +827,7 @@ function hn(e, t, n, o, s, i, r, c, a, l, d, u, f, w, h, m, g, p, v) {
     return W;
   }
   return {
-    init: st,
+    init: rt,
     destroy: G,
     pointerDown: V
   };
@@ -968,7 +968,7 @@ function wn(e, t, n, o, s, i) {
   return C;
 }
 function yn(e, t, n, o, s) {
-  const i = s.measure(10), r = s.measure(50), c = lt(0.1, 0.99);
+  const i = s.measure(10), r = s.measure(50), c = dt(0.1, 0.99);
   let a = !1;
   function l() {
     return !(a || !e.reachedAny(n.get()) || !e.reachedAny(t.get()));
@@ -988,13 +988,13 @@ function yn(e, t, n, o, s) {
   };
 }
 function Sn(e, t, n, o, s) {
-  const i = lt(-t + e, 0), r = u(), c = d(), a = f();
+  const i = dt(-t + e, 0), r = u(), c = d(), a = f();
   function l(h, m) {
-    return wt(h, m) <= 1;
+    return yt(h, m) <= 1;
   }
   function d() {
     const h = r[0], m = J(r), g = r.lastIndexOf(h), p = r.indexOf(m) + 1;
-    return lt(g, p);
+    return dt(g, p);
   }
   function u() {
     return n.map((h, m) => {
@@ -1022,14 +1022,14 @@ function Sn(e, t, n, o, s) {
 function bn(e, t, n) {
   const o = t[0], s = n ? o - e : J(t);
   return {
-    limit: lt(s, o)
+    limit: dt(s, o)
   };
 }
 function En(e, t, n, o) {
   const i = t.min + 0.1, r = t.max + 0.1, {
     reachedMin: c,
     reachedMax: a
-  } = lt(i, r);
+  } = dt(i, r);
   function l(f) {
     return f === 1 ? a(n.get()) : f === -1 ? c(n.get()) : !1;
   }
@@ -1092,7 +1092,7 @@ function Ln(e, t, n, o, s, i) {
         return le(S);
       }
       if (v) {
-        const S = kt(i) - J(g)[0] + 1;
+        const S = xt(i) - J(g)[0] + 1;
         return le(S, J(g)[0]);
       }
       return h;
@@ -1203,7 +1203,7 @@ function Tn(e, t, n, o, s, i, r, c) {
     init: d
   };
 }
-function gt(e) {
+function vt(e) {
   let t = e;
   function n() {
     return t;
@@ -1254,7 +1254,7 @@ function ve(e, t) {
   };
 }
 function Cn(e, t, n, o, s, i, r, c, a) {
-  const d = St(s), u = St(s).reverse(), f = p().concat(v());
+  const d = bt(s), u = bt(s).reverse(), f = p().concat(v());
   function w(E, k) {
     return E.reduce((b, x) => b - s[x], k);
   }
@@ -1274,7 +1274,7 @@ function Cn(e, t, n, o, s, i, r, c, a) {
       return {
         index: A,
         loopPoint: B,
-        slideLocation: gt(-1),
+        slideLocation: vt(-1),
         translate: ve(e, a[A]),
         target: () => c.get() > B ? M : U
       };
@@ -1359,7 +1359,7 @@ function Pn(e, t, n, o) {
     c && c.disconnect(), a = !0;
   }
   function u(h) {
-    return bt(s).reduce((m, g) => {
+    return Et(s).reduce((m, g) => {
       const p = parseInt(g), {
         isIntersecting: v
       } = s[p];
@@ -1414,11 +1414,11 @@ function Mn(e, t, n, o, s, i, r, c, a) {
     direction: u
   } = e, f = Wt(n);
   function w(p, v) {
-    return St(p).filter((S) => S % v === 0).map((S) => p.slice(S, S + v));
+    return bt(p).filter((S) => S % v === 0).map((S) => p.slice(S, S + v));
   }
   function h(p) {
-    return p.length ? St(p).reduce((v, S, L) => {
-      const C = J(v) || 0, I = C === 0, E = S === kt(p), k = s[l] - i[C][l], b = s[l] - i[S][d], x = !o && I ? u(r) : 0, A = !o && E ? u(c) : 0, M = P(b - A - (k + x));
+    return p.length ? bt(p).reduce((v, S, L) => {
+      const C = J(v) || 0, I = C === 0, E = S === xt(p), k = s[l] - i[C][l], b = s[l] - i[S][d], x = !o && I ? u(r) : 0, A = !o && E ? u(c) : 0, M = P(b - A - (k + x));
       return L && M > t + a && v.push(S), E && v.push(p.length), v;
     }, []).map((v, S, L) => {
       const C = Math.max(L[S - 1] || 0);
@@ -1454,8 +1454,8 @@ function qn(e, t, n, o, s, i, r) {
     slideSizes: j,
     slideSizesWithGaps: K,
     startGap: Q,
-    endGap: st
-  } = On(A, b, x, n, W, s), G = Mn(A, M, g, u, b, x, Q, st, E), {
+    endGap: rt
+  } = On(A, b, x, n, W, s), G = Mn(A, M, g, u, b, x, Q, rt, E), {
     snaps: X,
     snapsAligned: Y
   } = xn(A, $, b, x, G), _ = -J(X) + J(K), {
@@ -1463,20 +1463,20 @@ function qn(e, t, n, o, s, i, r) {
     scrollContainLimit: nt
   } = Sn(M, _, Y, v, E), N = B ? tt : Y, {
     limit: F
-  } = bn(_, N, u), z = ge(kt(N), d, u), V = z.clone(), D = St(n), y = ({
-    dragHandler: ut,
+  } = bn(_, N, u), z = ge(xt(N), d, u), V = z.clone(), D = bt(n), y = ({
+    dragHandler: ft,
     scrollBody: Bt,
     scrollBounds: Ft,
     options: {
-      loop: xt
+      loop: Lt
     }
   }) => {
-    xt || Ft.constrain(ut.pointerDown()), Bt.seek();
+    Lt || Ft.constrain(ft.pointerDown()), Bt.seek();
   }, T = ({
-    scrollBody: ut,
+    scrollBody: ft,
     translate: Bt,
     location: Ft,
-    offsetLocation: xt,
+    offsetLocation: Lt,
     previousLocation: Ie,
     scrollLooper: Ae,
     slideLooper: Te,
@@ -1488,11 +1488,11 @@ function qn(e, t, n, o, s, i, r) {
       loop: te
     }
   }, ee) => {
-    const ne = ut.settled(), Oe = !Pe.shouldConstrain(), oe = te ? ne : ne && Oe, se = oe && !Ce.pointerDown();
+    const ne = ft.settled(), Oe = !Pe.shouldConstrain(), oe = te ? ne : ne && Oe, se = oe && !Ce.pointerDown();
     se && De.stop();
     const Me = Ft.get() * ee + Ie.get() * (1 - ee);
-    xt.set(Me), te && (Ae.loop(ut.direction()), Te.loop()), Bt.to(xt.get()), se && Zt.emit("settle"), oe || Zt.emit("scroll");
-  }, O = dn(o, s, () => y(qt), (ut) => T(qt, ut)), H = 0.68, Z = N[z.get()], et = gt(Z), it = gt(Z), ot = gt(Z), rt = gt(Z), pt = wn(et, ot, it, rt, f, H), Ot = In(u, N, _, F, rt), Mt = An(O, z, V, pt, Ot, rt, r), Xt = kn(F), Yt = Et(), xe = Pn(t, n, r, m), {
+    Lt.set(Me), te && (Ae.loop(ft.direction()), Te.loop()), Bt.to(Lt.get()), se && Zt.emit("settle"), oe || Zt.emit("scroll");
+  }, O = dn(o, s, () => y(qt), (ft) => T(qt, ft)), H = 0.68, Z = N[z.get()], et = vt(Z), at = vt(Z), ot = vt(Z), ct = vt(Z), pt = wn(et, ot, at, ct, f, H), Ot = In(u, N, _, F, ct), Mt = An(O, z, V, pt, Ot, ct, r), Xt = kn(F), Yt = kt(), xe = Pn(t, n, r, m), {
     slideRegistry: Jt
   } = Ln(B, v, N, nt, G, D), Le = Tn(e, n, Jt, Mt, pt, Yt, r, I), qt = {
     ownerDocument: o,
@@ -1502,7 +1502,7 @@ function qn(e, t, n, o, s, i, r) {
     slideRects: x,
     animation: O,
     axis: A,
-    dragHandler: hn(A, e, o, s, rt, pn(A, s), et, O, Mt, pt, Ot, z, r, U, w, h, p, H, C),
+    dragHandler: hn(A, e, o, s, ct, pn(A, s), et, O, Mt, pt, Ot, z, r, U, w, h, p, H, C),
     eventStore: Yt,
     percentOfView: U,
     index: z,
@@ -1510,12 +1510,12 @@ function qn(e, t, n, o, s, i, r) {
     limit: F,
     location: et,
     offsetLocation: ot,
-    previousLocation: it,
+    previousLocation: at,
     options: i,
     resizeHandler: vn(t, r, s, n, A, S, k),
     scrollBody: pt,
-    scrollBounds: yn(F, ot, rt, pt, U),
-    scrollLooper: En(_, F, ot, [et, ot, it, rt]),
+    scrollBounds: yn(F, ot, ct, pt, U),
+    scrollLooper: En(_, F, ot, [et, ot, at, ct]),
     scrollProgress: Xt,
     scrollSnapList: N.map(Xt.get),
     scrollSnaps: N,
@@ -1528,7 +1528,7 @@ function qn(e, t, n, o, s, i, r) {
     slideIndexes: D,
     slideRegistry: Jt,
     slidesToScroll: G,
-    target: rt,
+    target: ct,
     translate: ve(A, t)
   };
   return qt;
@@ -1589,11 +1589,11 @@ function Nn(e) {
     return me(i, r || {});
   }
   function n(i) {
-    const r = i.breakpoints || {}, c = bt(r).filter((a) => e.matchMedia(a).matches).map((a) => r[a]).reduce((a, l) => t(a, l), {});
+    const r = i.breakpoints || {}, c = Et(r).filter((a) => e.matchMedia(a).matches).map((a) => r[a]).reduce((a, l) => t(a, l), {});
     return t(i, c);
   }
   function o(i) {
-    return i.map((r) => bt(r.breakpoints || {})).reduce((r, c) => r.concat(c), []).map(e.matchMedia);
+    return i.map((r) => Et(r.breakpoints || {})).reduce((r, c) => r.concat(c), []).map(e.matchMedia);
   }
   return {
     mergeOptions: t,
@@ -1619,7 +1619,7 @@ function Un(e) {
   };
 }
 function Kt(e, t, n) {
-  const o = e.ownerDocument, s = o.defaultView, i = Nn(s), r = Un(i), c = Et(), a = Bn(), {
+  const o = e.ownerDocument, s = o.defaultView, i = Nn(s), r = Un(i), c = kt(), a = Bn(), {
     mergeOptions: l,
     optionsAtMedia: d,
     optionsMediaQueries: u
@@ -1685,7 +1685,7 @@ function Kt(e, t, n) {
   function Q() {
     return p.scrollSnapList;
   }
-  function st() {
+  function rt() {
     return p.scrollProgress.get(p.offsetLocation.get());
   }
   function G() {
@@ -1730,7 +1730,7 @@ function Kt(e, t, n) {
     rootNode: N,
     scrollNext: B,
     scrollPrev: W,
-    scrollProgress: st,
+    scrollProgress: rt,
     scrollSnapList: Q,
     scrollTo: $,
     selectedScrollSnap: G,
@@ -1808,7 +1808,7 @@ function Qt(e = {}) {
         constrain: Q
       },
       options: {
-        loop: st
+        loop: rt
       }
     } = b, G = t.direction === "forward" ? -1 : 1, X = () => z;
     let Y = 0, _ = 0, tt = x.get(), nt = 0, N = !1;
@@ -1818,7 +1818,7 @@ function Qt(e = {}) {
       const D = $.byDistance(0, !1).index;
       B.get() !== D && (W.set(B.get()), B.set(D), n.emit("select"));
       const y = t.direction === "forward" ? j(M.get()) : K(M.get());
-      if (!st && y) {
+      if (!rt && y) {
         N = !0;
         const T = Q(x.get());
         x.set(T), U.set(x), f();
@@ -1959,10 +1959,10 @@ function jt(e) {
   const s = document.querySelector(`[data-link="${o}"]`);
   s && (s.classList.add("w--current"), n && (n.style.left = `${s.offsetLeft}px`, n.style.width = `${s.offsetWidth}px`));
 }
-let at = null, Tt = !1, dt = null, ft = !1;
+let lt = null, gt = !1, ht = null, st = !1;
 function ke() {
   var c;
-  at && (clearInterval(at), at = null), Tt = !1, ft = !1;
+  lt && (clearInterval(lt), lt = null), gt = !1, st = !1;
   const e = document.getElementById("currentYear");
   e && (e.textContent = (/* @__PURE__ */ new Date()).getFullYear());
   const t = document.getElementById("first"), n = document.getElementById("second");
@@ -1970,46 +1970,54 @@ function ke() {
   const o = t.querySelector("p"), s = n.querySelector("p");
   if (((c = document.querySelector("[data-swup]")) == null ? void 0 : c.dataset.swup) === "details") {
     const a = document.querySelector('[data-swup="details"]'), l = ye || (a == null ? void 0 : a.dataset.name) || "", d = Se || (a == null ? void 0 : a.dataset.services) || "";
-    o && l && (o.textContent = l, t.style.width = ct(t, l) + "px"), s && d && (s.textContent = d, n.style.width = ct(n, d) + "px");
+    o && l && (o.textContent = l, t.style.width = ut(t, l) + "px"), s && d && (s.textContent = d, n.style.width = ut(n, d) + "px");
     return;
   }
-  dt === null && (dt = t.dataset.default || (o == null ? void 0 : o.textContent) || ""), o && (o.textContent = dt, t.style.width = ct(t, dt) + "px");
+  ht === null && (ht = t.dataset.default || (o == null ? void 0 : o.textContent) || ""), o && (o.textContent = ht, t.style.width = ut(t, ht) + "px");
   const r = Dt();
-  s && (s.textContent = r, n.style.width = ct(n, r) + "px"), at = setInterval(() => {
-    !Tt && s && (s.textContent = Dt());
-  }, 1e3), window.matchMedia("(hover: hover)").matches && (document.querySelectorAll("[data-name]").forEach((a) => {
+  s && (s.textContent = r, n.style.width = ut(n, r) + "px"), lt = setInterval(() => {
+    !gt && s && (s.textContent = Dt());
+  }, 1e3), window.matchMedia("(hover: hover)").matches ? (document.querySelectorAll("[data-name]").forEach((a) => {
     a.addEventListener("mouseenter", () => {
-      ft || ht(t, o, a.dataset.name);
+      st || it(t, o, a.dataset.name);
     }), a.addEventListener("mouseleave", () => {
-      ft || ht(t, o, dt);
+      st || it(t, o, ht);
     });
   }), document.querySelectorAll("[data-services]").forEach((a) => {
     a.addEventListener("mouseenter", () => {
-      ft || (Tt = !0, ht(n, s, a.dataset.services));
+      st || (gt = !0, it(n, s, a.dataset.services));
     }), a.addEventListener("mouseleave", () => {
-      ft || (Tt = !1, ht(n, s, Dt()));
+      st || (gt = !1, it(n, s, Dt()));
+    });
+  })) : (document.querySelectorAll("[data-name]").forEach((a) => {
+    a.addEventListener("click", () => {
+      st || it(t, o, a.dataset.name);
+    });
+  }), document.querySelectorAll("[data-services]").forEach((a) => {
+    a.addEventListener("click", () => {
+      st || (gt = !0, it(n, s, a.dataset.services));
     });
   }));
 }
 function Gn(e, t) {
-  ft = !0, at && (clearInterval(at), at = null);
+  st = !0, lt && (clearInterval(lt), lt = null);
   const n = document.getElementById("first"), o = document.getElementById("second");
   if (!n || !o) return;
   const s = n.querySelector("p"), i = o.querySelector("p");
-  s && e && (s.textContent = e, n.style.width = ct(n, e) + "px"), i && t && (i.textContent = t, o.style.width = ct(o, t) + "px");
+  s && e && (s.textContent = e, n.style.width = ut(n, e) + "px"), i && t && (i.textContent = t, o.style.width = ut(o, t) + "px");
 }
 function _n() {
   const e = document.getElementById("first"), t = document.getElementById("second");
   if (!e || !t) return;
-  const n = e.querySelector("p"), o = t.querySelector("p"), s = e.dataset.default || dt || "";
-  n && s && ht(e, n, s), o && ht(t, o, Dt());
+  const n = e.querySelector("p"), o = t.querySelector("p"), s = e.dataset.default || ht || "";
+  n && s && it(e, n, s), o && it(t, o, Dt());
 }
-function ht(e, t, n) {
+function it(e, t, n) {
   t.style.opacity = "0", setTimeout(() => {
-    t.textContent = n, e.style.width = ct(e, n) + "px", t.style.opacity = "1";
+    t.textContent = n, e.style.width = ut(e, n) + "px", t.style.opacity = "1";
   }, 200);
 }
-function ct(e, t) {
+function ut(e, t) {
   const n = e.cloneNode(!0);
   Object.assign(n.style, {
     position: "absolute",
