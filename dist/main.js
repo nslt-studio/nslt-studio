@@ -1939,7 +1939,7 @@ function Ee() {
       const n = t.target;
       t.isIntersecting ? (n.dataset.src && !n.src && (n.src = n.dataset.src, n.load()), n.play()) : n.pause();
     });
-  }, { threshold: 0.2 }), document.querySelectorAll("video").forEach((e) => {
+  }, { threshold: 0 }), document.querySelectorAll("video").forEach((e) => {
     const t = () => {
       e.style.opacity = "1";
     };

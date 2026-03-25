@@ -29,7 +29,7 @@ export function initMedia() {
         video.pause()
       }
     })
-  }, { threshold: 0.2 })
+  }, { threshold: 0 })
 
   document.querySelectorAll('video').forEach(video => {
     const reveal = () => { video.style.opacity = '1' }
