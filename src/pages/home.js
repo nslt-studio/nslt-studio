@@ -1,6 +1,5 @@
 import gsap from 'gsap'
-
-let clockInterval
+import { initClock, initFreelancePulse } from '../shared.js'
 
 export function initHome() {
   // Work item indices
@@ -9,21 +8,7 @@ export function initHome() {
     if (p) p.textContent = String(i + 1).padStart(3, '0')
   })
 
-  // CET clock (live)
-  clearInterval(clockInterval)
-  const timeEls = document.querySelectorAll('[aria-label="time"]')
-  const updateClock = () => {
-    const time = new Date().toLocaleTimeString('fr-FR', {
-      timeZone: 'Europe/Paris',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    })
-    timeEls.forEach(el => (el.textContent = `${time} CET`))
-  }
-  updateClock()
-  clockInterval = setInterval(updateClock, 1000)
+  initClock()
 
   // Work item hover media (desktop only)
   if (window.innerWidth >= 992) document.querySelectorAll('.work-item').forEach(item => {
@@ -78,8 +63,10 @@ export function initHome() {
   })
 
   // Animation groups
-  const headerEls = [...(document.querySelector('.header')?.children ?? [])]
-  const footerEls = [...(document.querySelector('.footer')?.children ?? [])]
+  const headerEls   = [...(document.querySelector('.header')?.children ?? [])]
+  const footerEl    = document.querySelector('.footer')
+  const footerDone  = !!footerEl?.dataset.animated
+  const footerEls   = footerDone ? [] : [...(footerEl?.children ?? [])]
 
   const group2 = [...(document.querySelector('.about')?.children ?? [])]
   const work = document.querySelector('.work')
@@ -105,13 +92,8 @@ export function initHome() {
         el.style.backgroundColor = ''
       }), 650)
 
-      gsap.to('[aria-label="freelance"]', {
-        opacity: 0,
-        duration: 0.6,
-        ease: 'none',
-        repeat: -1,
-        yoyo: true,
-      })
+      if (!footerDone && footerEl) footerEl.dataset.animated = 'true'
+      initFreelancePulse()
     },
   })
   .to(headerEls, { opacity: 1, duration: 0.6, ease: 'power1.inOut', stagger: 0.04 })

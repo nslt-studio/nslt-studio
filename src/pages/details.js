@@ -1,25 +1,47 @@
 import gsap from 'gsap'
-import EmblaCarousel from 'embla-carousel'
+import { initClock, initFreelancePulse } from '../shared.js'
 
 export function initDetails() {
-  const emblaNode = document.querySelector('.embla')
-  const headerEl  = document.querySelector('.header')
+  initClock()
 
-  // Hide current-page work-link, exclude it from the list
-  const allWorkLinks = [...document.querySelectorAll('.work-list .work-item .work-link')]
-  const currentLink  = allWorkLinks.find(el => el.classList.contains('w--current'))
+  // Hide current page work-item
+  const currentLink = document.querySelector('.work-list .work-item .work-link.w--current')
   if (currentLink) currentLink.closest('.work-item').style.display = 'none'
-  const workLinks = allWorkLinks.filter(el => !el.classList.contains('w--current'))
 
-  const indexBtns = [...document.querySelectorAll('[data-button="index"]')]
+  // Media items — shuffle, random width, index labels
+  const mediaContainer = document.querySelector('.media')
+  if (mediaContainer) {
+    const items = [...mediaContainer.querySelectorAll('.media-item')]
 
-  // Work item indices
+    // Shuffle array then reorder DOM
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[items[i], items[j]] = [items[j], items[i]]
+    }
+    items.forEach(item => mediaContainer.appendChild(item))
+
+    const w = window.innerWidth
+    const widths = w < 768  ? [100]
+                 : w < 992  ? [50, 52.5, 55, 57.5, 60, 62.5, 65, 67.5, 70, 72.5, 75]
+                 :             [40, 42.5, 45, 47.5, 50, 52.5, 55, 57.5, 60]
+    const total  = String(items.length).padStart(3, '0')
+
+    items.forEach((item, i) => {
+      const sizable = item.querySelector('.media-video, .media-img-inner')
+      if (sizable) sizable.style.width = widths[Math.floor(Math.random() * widths.length)] + '%'
+
+      const p = item.querySelector('p[media-index]')
+      if (p) p.textContent = `${String(i + 1).padStart(3, '0')} / ${total}`
+    })
+  }
+
+  // Work item indices (same calculation as home)
   document.querySelectorAll('.work-list .work-item').forEach((item, i) => {
     const p = item.querySelector('p[data-index]')
     if (p) p.textContent = String(i + 1).padStart(3, '0')
   })
 
-  // Work item hover media — data-src lazy load (desktop only)
+  // Work item hover media — desktop only, data-src lazy load
   if (window.innerWidth >= 992) document.querySelectorAll('.work-list .work-item').forEach(item => {
     const link  = item.querySelector('.work-link')
     const media = item.querySelector('.work-media')
@@ -69,116 +91,85 @@ export function initDetails() {
     })
   })
 
-  // Work links start hidden
-  gsap.set(workLinks, { opacity: 0, pointerEvents: 'none' })
+  // Media items — img/video appear once loaded
+  document.querySelectorAll('.media-item').forEach(item => {
+    const img   = item.querySelector('img')
+    const video = item.querySelector('video')
 
-  // Index toggle — only embla dims (not header)
-  const indexEl = document.querySelector('.index')
-  let indexOpen = false
+    if (img) {
+      gsap.set(img, { opacity: 0 })
+      const show = () => gsap.to(img, { opacity: 1, duration: 0.6, ease: 'power1.inOut', delay: 0.3 })
+      img.complete && img.naturalWidth ? show() : img.addEventListener('load', show, { once: true })
+    }
 
-  const openIndex = () => {
-    indexOpen = true
-    indexBtns.forEach(btn => (btn.textContent = 'Close Index'))
-    gsap.set(workLinks, { backgroundColor: 'var(--light-black)' })
-    gsap.timeline()
-      .to(workLinks, { opacity: 1, duration: 0.6, ease: 'power1.inOut', stagger: 0.04, pointerEvents: 'auto' })
-      .call(() => {
-        workLinks.forEach(el => {
-          el.style.transition = 'background-color 600ms ease'
-          el.style.backgroundColor = 'transparent'
-        })
-        setTimeout(() => workLinks.forEach(el => {
-          el.style.transition = ''
-          el.style.backgroundColor = ''
-        }), 650)
-      })
-    if (indexEl) indexEl.style.pointerEvents = 'auto'
-    if (emblaNode) gsap.to(emblaNode, { opacity: 0.1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'none' })
+    if (video) {
+      gsap.set(video, { opacity: 0 })
+      video.addEventListener('canplay', () => {
+        gsap.to(video, { opacity: 1, duration: 0.6, ease: 'power1.inOut', delay: 0.3 })
+        video.play().catch(() => {})
+      }, { once: true })
+    }
+  })
+
+  // Animation — header + footer → .media → about + work
+  const headerEls  = [...(document.querySelector('.header')?.children ?? [])]
+  const footerEl   = document.querySelector('.footer')
+  const footerDone = !!footerEl?.dataset.animated
+  const footerEls  = footerDone ? [] : [...(footerEl?.children ?? [])]
+  const group1     = [...headerEls, ...footerEls]
+  const mediaEl   = document.querySelector('.media')
+
+  const group2 = [...(document.querySelector('.about')?.children ?? [])]
+  const work = document.querySelector('.work')
+  if (work) {
+    group2.push(...[...work.children].filter(el => !el.classList.contains('work-wrapper')))
+    group2.push(...work.querySelectorAll('.work-list .work-item .work-link'))
   }
 
-  const closeIndex = () => {
-    indexOpen = false
-    indexBtns.forEach(btn => (btn.textContent = 'Index'))
-    if (indexEl) indexEl.style.pointerEvents = 'none'
-    gsap.to(workLinks, { opacity: 0, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'none' })
-    if (emblaNode) gsap.to(emblaNode, { opacity: 1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'auto' })
-  }
+  if (mediaEl) gsap.set(mediaEl, { opacity: 0 })
+  if (group2.length) gsap.set(group2, { opacity: 0, backgroundColor: 'var(--light-black)' })
 
-  indexBtns.forEach(btn => btn.addEventListener('click', () => indexOpen ? closeIndex() : openIndex()))
-
-  // Embla init
-  let showCurrentSlide = null
-
-  if (emblaNode) {
-    const viewport  = emblaNode.querySelector('.embla__viewport')
-    const prevBtn   = emblaNode.querySelector('.embla__prev')
-    const nextBtn   = emblaNode.querySelector('.embla__next')
-    const container = viewport.querySelector('.embla__container')
-    const slides    = [...container.querySelectorAll('.embla__slide')]
-
-    for (let i = slides.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      container.appendChild(slides[j])
-      slides.splice(j, 1)
-    }
-
-    const embla = EmblaCarousel(viewport, { loop: true, duration: 0, dragFree: false })
-    prevBtn?.addEventListener('click', () => embla.scrollPrev())
-    nextBtn?.addEventListener('click', () => embla.scrollNext())
-
-    const slideNodes = embla.slideNodes()
-    slideNodes.forEach(slide => gsap.set(slide.querySelectorAll('img, video'), { opacity: 0 }))
-
-    const showSlideMedia = (slide) => {
-      const els = [...slide.querySelectorAll('img, video')]
-      if (!els.length) return
-      gsap.to(els, { opacity: 1, duration: 0.6, ease: 'power1.inOut', delay: 0.3 })
-      slide.querySelectorAll('video').forEach(v => v.play().catch(() => {}))
-    }
-
-    const hideSlideMedia = (slide) => {
-      const els = [...slide.querySelectorAll('img, video')]
-      if (!els.length) return
-      gsap.killTweensOf(els)
-      gsap.set(els, { opacity: 0 })
-      slide.querySelectorAll('video').forEach(v => v.pause())
-    }
-
-    embla.on('select', () => {
-      hideSlideMedia(slideNodes[embla.previousScrollSnap()])
-      showSlideMedia(slideNodes[embla.selectedScrollSnap()])
+  const flashBg = (els) => {
+    els.forEach(el => {
+      el.style.transition = 'background-color 600ms ease'
+      el.style.backgroundColor = 'transparent'
+      el.style.pointerEvents = 'auto'
     })
-
-    showCurrentSlide = () => showSlideMedia(slideNodes[embla.selectedScrollSnap()])
-    gsap.set(emblaNode, { opacity: 0, pointerEvents: 'none' })
+    setTimeout(() => els.forEach(el => {
+      el.style.transition = ''
+      el.style.backgroundColor = ''
+    }), 650)
   }
 
-  // Header + footer entrance
-  const headerEls = [...(headerEl?.children ?? [])]
-  const footerEls = [...(document.querySelector('.footer')?.children ?? [])]
-  const all = [...headerEls, ...footerEls]
-
-  if (!all.length) {
-    if (emblaNode) gsap.to(emblaNode, { opacity: 1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'auto', onComplete: () => showCurrentSlide?.() })
+  if (!group1.length) {
+    if (mediaEl) gsap.to(mediaEl, { opacity: 1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'auto' })
     return
   }
 
-  gsap.set(all, { opacity: 0, backgroundColor: 'var(--light-black)' })
+  gsap.set(group1, { opacity: 0, backgroundColor: 'var(--light-black)' })
 
   gsap.timeline({
     onComplete() {
-      all.forEach(el => {
-        el.style.transition = 'background-color 600ms ease'
-        el.style.backgroundColor = 'transparent'
-        el.style.pointerEvents = 'auto'
-      })
-      setTimeout(() => all.forEach(el => {
-        el.style.transition = ''
-        el.style.backgroundColor = ''
-      }), 650)
+      flashBg(group1)
+      if (!footerDone && footerEl) footerEl.dataset.animated = 'true'
 
-      if (emblaNode) {
-        gsap.to(emblaNode, { opacity: 1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'auto', onComplete: () => showCurrentSlide?.() })
+      if (mediaEl) {
+        gsap.to(mediaEl, {
+          opacity: 1, duration: 0.6, ease: 'power1.inOut', pointerEvents: 'auto',
+          onComplete() {
+            if (group2.length) {
+              gsap.timeline({ onComplete: () => { flashBg(group2); initFreelancePulse() } })
+                .to(group2, { opacity: 1, duration: 0.6, ease: 'power1.inOut', stagger: 0.08 })
+            } else {
+              initFreelancePulse()
+            }
+          },
+        })
+      } else if (group2.length) {
+        gsap.timeline({ onComplete: () => { flashBg(group2); initFreelancePulse() } })
+          .to(group2, { opacity: 1, duration: 0.6, ease: 'power1.inOut', stagger: 0.08 })
+      } else {
+        initFreelancePulse()
       }
     },
   })
