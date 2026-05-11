@@ -1,45 +1,69 @@
-let viewportObserver = null
+function shuffle(parent) {
+  const n = parent.children.length
+  const orders = Array.from({ length: n }, (_, i) => i)
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [orders[i], orders[j]] = [orders[j], orders[i]]
+  }
+  ;[...parent.children].forEach((el, i) => { el.style.order = orders[i] })
+}
 
-export function initMedia() {
-  if (viewportObserver) {
-    viewportObserver.disconnect()
-    viewportObserver = null
+function initScrollFade(items) {
+  const BOTTOM_OFFSET = 120
+
+  const update = () => {
+    items.forEach(el => {
+      const rect = el.getBoundingClientRect()
+      if (rect.top >= 0) {
+        el.style.opacity = '1'
+        return
+      }
+      const fadeDistance = rect.height - BOTTOM_OFFSET
+      if (fadeDistance <= 0) {
+        el.style.opacity = rect.bottom <= BOTTOM_OFFSET ? '0' : '1'
+        return
+      }
+      const t = Math.min(1, -rect.top / fadeDistance)
+      el.style.opacity = 1 - (t * t)
+    })
   }
 
-  // Images
-  document.querySelectorAll('img').forEach(img => {
-    if (img.complete && img.naturalWidth > 0) {
-      img.style.opacity = '1'
-    } else {
-      img.addEventListener('load', () => { img.style.opacity = '1' }, { once: true })
+  let ticking = false
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => { update(); ticking = false })
+      ticking = true
     }
-  })
+  }, { passive: true })
 
-  // Videos — lazy-load src on viewport enter, reveal on first frame, play/pause on viewport
-  viewportObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const video = entry.target
-      if (entry.isIntersecting) {
-        if (video.dataset.src && !video.src) {
-          video.src = video.dataset.src
-          video.load()
-        }
-        video.play()
-      } else {
-        video.pause()
-      }
+  update()
+}
+
+export function initMedia() {
+  const allItems = []
+
+  document.querySelectorAll('.work-list .work-item .work-media').forEach(media => {
+    shuffle(media)
+
+    allItems.push(...media.children)
+
+    media.querySelectorAll('img').forEach(img => {
+      img.style.opacity = '0'
+      img.style.transition = 'opacity 0.6s ease-in-out'
+      const show = () => { img.style.opacity = '1' }
+      img.complete && img.naturalWidth ? show() : img.addEventListener('load', show, { once: true })
     })
-  }, { threshold: 0 })
 
-  document.querySelectorAll('video').forEach(video => {
-    const reveal = () => { video.style.opacity = '1' }
+    media.querySelectorAll('video').forEach(video => {
+      video.style.opacity = '0'
+      video.style.transition = 'opacity 0.6s ease-in-out'
+      requestAnimationFrame(() => { video.style.opacity = '1' })
 
-    if (video.readyState >= 2) {
-      reveal()
-    } else {
-      video.addEventListener('loadeddata', reveal, { once: true })
-    }
-
-    viewportObserver.observe(video)
+      new IntersectionObserver(([entry]) => {
+        entry.isIntersecting ? video.play().catch(() => {}) : video.pause()
+      }, { threshold: 0 }).observe(video)
+    })
   })
+
+  if (allItems.length) initScrollFade(allItems)
 }

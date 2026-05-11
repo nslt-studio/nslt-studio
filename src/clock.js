@@ -1,6 +1,6 @@
-import gsap from 'gsap'
-
 let clockInterval
+let freelanceRaf
+let freelanceStart
 
 export function initClock() {
   clearInterval(clockInterval)
@@ -24,7 +24,20 @@ export function initClock() {
 export function initFreelancePulse() {
   const els = document.querySelectorAll('[aria-label="freelance"]')
   if (!els.length) return
-  gsap.killTweensOf(els)
-  gsap.set(els, { opacity: 1 })
-  gsap.to(els, { opacity: 0, duration: 0.6, ease: 'none', repeat: -1, yoyo: true })
+
+  cancelAnimationFrame(freelanceRaf)
+  freelanceStart = null
+
+  const duration = 600
+
+  const tick = (ts) => {
+    if (!freelanceStart) freelanceStart = ts
+    const t = ((ts - freelanceStart) % (duration * 2)) / duration
+    const opacity = t < 1 ? 1 - t : t - 1
+    els.forEach(el => (el.style.opacity = opacity))
+    freelanceRaf = requestAnimationFrame(tick)
+  }
+
+  els.forEach(el => (el.style.opacity = '1'))
+  freelanceRaf = requestAnimationFrame(tick)
 }

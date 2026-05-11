@@ -1,5 +1,6 @@
-import { initSwup } from './src/swup.js'
-import { initPage } from './src/router.js'
+import { initHome } from './src/pages/home.js'
 
-initSwup()
-initPage()
+history.scrollRestoration = 'manual'
+window.scrollTo(0, 0)
+
+initHome()
