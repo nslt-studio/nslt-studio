@@ -130,6 +130,7 @@ export function initHome() {
     new IntersectionObserver(([entry]) => {
       const past = entry.boundingClientRect.bottom <= 0
       btn.style.transform = past ? 'translate(-50%, 0%)' : 'translate(-50%, 100%)'
+      btn.style.opacity = past ? '1' : '0'
     }).observe(about)
 
     btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
