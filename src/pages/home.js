@@ -18,15 +18,23 @@ function initLoader() {
 
   document.body.style.overflow = 'hidden'
 
-  const chars = [...headline.textContent]
+  const text = headline.textContent
+  const letterSpacing = parseFloat(getComputedStyle(headline).letterSpacing) || 0
+
   headline.textContent = ''
   headline.style.opacity = '1'
 
-  const spans = chars.map(char => {
+  const chars = [...text]
+  const spans = chars.map((char, i) => {
     const span = document.createElement('span')
     span.textContent = char
     span.style.opacity = '0'
+    span.style.whiteSpace = 'pre'
+    span.style.transform = 'translateZ(0)'
     span.style.transition = `opacity ${T.letterFade}ms ease`
+    if (i === chars.length - 1 && letterSpacing > 0) {
+      span.style.marginRight = `-${letterSpacing}px`
+    }
     headline.appendChild(span)
     return span
   })
@@ -74,27 +82,32 @@ function initMode() {
 
 function initInactive() {
   const el = document.querySelector('.inactive')
+  const overlay = document.querySelector('.overlay')
   if (!el) return
 
   const video = el.querySelector('video')
   let timer
 
   if (video) {
+    video.setAttribute('playsinline', '')
+    video.muted = true
     video.style.opacity = '0'
     video.style.transition = 'opacity 0.6s ease-in-out'
     const reveal = () => { video.style.opacity = '1' }
-    video.readyState >= 2 ? reveal() : video.addEventListener('canplay', reveal, { once: true })
+    video.readyState >= 2 ? reveal() : video.addEventListener('loadeddata', reveal, { once: true })
   }
 
   const show = () => {
     el.style.opacity = '1'
     el.style.pointerEvents = 'auto'
+    if (overlay) { overlay.style.opacity = '1'; overlay.style.pointerEvents = 'auto' }
     video?.play().catch(() => {})
   }
 
   const hide = () => {
     el.style.opacity = '0'
     el.style.pointerEvents = 'none'
+    if (overlay) { overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none' }
     video?.pause()
   }
 

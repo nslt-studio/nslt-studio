@@ -55,9 +55,13 @@ export function initMedia() {
     })
 
     media.querySelectorAll('video').forEach(video => {
+      video.setAttribute('playsinline', '')
+      video.muted = true
       video.style.opacity = '0'
       video.style.transition = 'opacity 0.6s ease-in-out'
-      requestAnimationFrame(() => { video.style.opacity = '1' })
+
+      const reveal = () => { video.style.opacity = '1' }
+      video.readyState >= 2 ? reveal() : video.addEventListener('loadeddata', reveal, { once: true })
 
       new IntersectionObserver(([entry]) => {
         entry.isIntersecting ? video.play().catch(() => {}) : video.pause()
