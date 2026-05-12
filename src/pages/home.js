@@ -2,61 +2,93 @@ import { initMedia } from '../media.js'
 import { initClock, initFreelancePulse } from '../clock.js'
 
 function initLoader() {
+  const FACTOR = 6
+
   const T = {
-    delay:         600,
-    stagger:        40,
-    letterFade:    300,
-    holdHeadline:  600,
-    headlineFade:  300,
-    holdLoader:    300,
-    loaderFade:    300,
+    delay:      600,
+    rotate:     600,
+    holdRotate: 300,
+    shrink:     300,
+    move:       400,
+    loaderFade: 400,
   }
 
   const loader = document.querySelector('.loader')
-  const headline = loader?.querySelector('.loader-headline')
-  if (!loader || !headline) return
+  const circle = loader?.querySelector('.circle-inner')
+  if (!loader || !circle) return
+
+  const circles = [...circle.querySelectorAll('.loader-circle')]
 
   document.body.style.overflow = 'hidden'
 
-  const text = headline.textContent
-  const letterSpacing = parseFloat(getComputedStyle(headline).letterSpacing) || 0
+  // Lire et verrouiller les tailles naturelles
+  const natural = circles.map(c => {
+    const s = getComputedStyle(c)
+    return { w: parseFloat(s.width), h: parseFloat(s.height), b: parseFloat(s.borderTopWidth) }
+  })
+  circles.forEach((c, i) => {
+    c.style.transition = 'none'
+    c.style.width = `${natural[i].w}px`
+    c.style.height = `${natural[i].h}px`
+    c.style.borderWidth = `${natural[i].b}px`
+  })
 
-  headline.textContent = ''
-  headline.style.opacity = '1'
+  // Lire la position réelle CSS avant tout changement
+  const loaderRect = loader.getBoundingClientRect()
+  const rectBefore = circle.getBoundingClientRect()
 
-  const chars = [...text]
-  const spans = chars.map((char, i) => {
-    const span = document.createElement('span')
-    span.textContent = char
-    span.style.opacity = '0'
-    span.style.whiteSpace = 'pre'
-    span.style.transform = 'translateZ(0)'
-    span.style.transition = `opacity ${T.letterFade}ms ease`
-    if (i === chars.length - 1 && letterSpacing > 0) {
-      span.style.marginRight = `-${letterSpacing}px`
-    }
-    headline.appendChild(span)
-    return span
+  // Supprimer le transform CSS pour mesurer la position sans transform
+  circle.style.transition = 'none'
+  circle.style.transform = 'translate(0px, 0px) rotate(0deg)'
+  const rectAfter = circle.getBoundingClientRect()
+
+  // Offset du transform CSS (recalcule le centrage quel que soit le CSS Webflow)
+  const cssOffX = rectBefore.left - rectAfter.left
+  const cssOffY = rectBefore.top - rectAfter.top
+  circle.style.transform = `translate(${cssOffX}px, ${cssOffY}px) rotate(0deg)`
+
+  // Forcer reflow puis appliquer transitions
+  circle.getBoundingClientRect()
+  circle.style.transition = `transform ${T.rotate}ms ease`
+  circles.forEach(c => {
+    c.style.transition = `width ${T.shrink}ms ease, height ${T.shrink}ms ease, border-width ${T.shrink}ms ease`
   })
 
   setTimeout(() => {
-    spans.forEach((span, i) => {
-      setTimeout(() => { span.style.opacity = '1' }, i * T.stagger)
-    })
-
-    const allVisible = (spans.length - 1) * T.stagger + T.letterFade
+    circle.style.transform = `translate(${cssOffX}px, ${cssOffY}px) rotate(360deg)`
 
     setTimeout(() => {
-      headline.style.transition = `opacity ${T.headlineFade}ms ease`
-      headline.style.opacity = '0'
+      circle.style.transition = `transform ${T.move}ms ease`
+
+      // Lire le transform exact depuis la matrice du browser — Y garanti inchangé
+      const mat1 = new DOMMatrix(getComputedStyle(circle).transform)
+      const rect1 = circle.getBoundingClientRect()
+      const dxToRight = loaderRect.right - rect1.right
+
+      // Shrink + move right — Y (mat1.m42) strictement inchangé
+      circles.forEach((c, i) => {
+        c.style.width = `${natural[i].w / FACTOR}px`
+        c.style.height = `${natural[i].h / FACTOR}px`
+        c.style.borderWidth = `${natural[i].b / FACTOR}px`
+      })
+      circle.style.transform = `translate(${mat1.m41 + dxToRight}px, ${mat1.m42}px) rotate(360deg)`
 
       setTimeout(() => {
-        document.body.style.overflow = ''
-        loader.style.transition = `opacity ${T.loaderFade}ms ease`
-        loader.style.opacity = '0'
-        setTimeout(() => loader.remove(), T.loaderFade)
-      }, T.headlineFade + T.holdLoader)
-    }, allVisible + T.holdHeadline)
+        // Lire position réelle après le mouvement pour calculer le delta Y exact vers le haut
+        const rect2 = circle.getBoundingClientRect()
+        const mat2  = new DOMMatrix(getComputedStyle(circle).transform)
+        const dyToTop = loaderRect.top - rect2.top
+
+        circle.style.transform = `translate(${mat2.m41}px, ${mat2.m42 + dyToTop}px) rotate(360deg)`
+
+        setTimeout(() => {
+          document.body.style.overflow = ''
+          loader.style.transition = `opacity ${T.loaderFade}ms ease`
+          loader.style.opacity = '0'
+          setTimeout(() => loader.remove(), T.loaderFade)
+        }, T.move)
+      }, T.move)
+    }, T.rotate + T.holdRotate)
   }, T.delay)
 }
 
