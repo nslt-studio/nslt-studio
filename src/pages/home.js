@@ -2,13 +2,10 @@ import { initMedia } from '../media.js'
 import { initClock, initFreelancePulse } from '../clock.js'
 
 function initLoader() {
-  const FACTOR = 6
-
   const T = {
     delay:      600,
     rotate:     600,
     holdRotate: 300,
-    shrink:     300,
     move:       400,
     loaderFade: 400,
   }
@@ -17,69 +14,28 @@ function initLoader() {
   const circle = loader?.querySelector('.circle-inner')
   if (!loader || !circle) return
 
-  const circles = [...circle.querySelectorAll('.loader-circle')]
-
   document.body.style.overflow = 'hidden'
 
-  // Lire et verrouiller les tailles naturelles
-  const natural = circles.map(c => {
-    const s = getComputedStyle(c)
-    return { w: parseFloat(s.width), h: parseFloat(s.height), b: parseFloat(s.borderTopWidth) }
-  })
-  circles.forEach((c, i) => {
-    c.style.transition = 'none'
-    c.style.width = `${natural[i].w}px`
-    c.style.height = `${natural[i].h}px`
-    c.style.borderWidth = `${natural[i].b}px`
-  })
-
-  // Lire la position réelle CSS avant tout changement
-  const loaderRect = loader.getBoundingClientRect()
-  const rectBefore = circle.getBoundingClientRect()
-
-  // Supprimer le transform CSS pour mesurer la position sans transform
   circle.style.transition = 'none'
-  circle.style.transform = 'translate(0px, 0px) rotate(0deg)'
-  const rectAfter = circle.getBoundingClientRect()
+  circle.style.transformOrigin = 'center center'
+  circle.style.right = '50%'
+  circle.style.top = '50%'
+  circle.style.transform = 'translate(50%, -50%) rotate(0deg)'
 
-  // Offset du transform CSS (recalcule le centrage quel que soit le CSS Webflow)
-  const cssOffX = rectBefore.left - rectAfter.left
-  const cssOffY = rectBefore.top - rectAfter.top
-  circle.style.transform = `translate(${cssOffX}px, ${cssOffY}px) rotate(0deg)`
-
-  // Forcer reflow puis appliquer transitions
   circle.getBoundingClientRect()
   circle.style.transition = `transform ${T.rotate}ms ease`
-  circles.forEach(c => {
-    c.style.transition = `width ${T.shrink}ms ease, height ${T.shrink}ms ease, border-width ${T.shrink}ms ease`
-  })
 
   setTimeout(() => {
-    circle.style.transform = `translate(${cssOffX}px, ${cssOffY}px) rotate(360deg)`
+    circle.style.transform = 'translate(50%, -50%) rotate(360deg)'
 
     setTimeout(() => {
-      circle.style.transition = `transform ${T.move}ms ease`
-
-      // Lire le transform exact depuis la matrice du browser — Y garanti inchangé
-      const mat1 = new DOMMatrix(getComputedStyle(circle).transform)
-      const rect1 = circle.getBoundingClientRect()
-      const dxToRight = loaderRect.right - rect1.right
-
-      // Shrink + move right — Y (mat1.m42) strictement inchangé
-      circles.forEach((c, i) => {
-        c.style.width = `${natural[i].w / FACTOR}px`
-        c.style.height = `${natural[i].h / FACTOR}px`
-        c.style.borderWidth = `${natural[i].b / FACTOR}px`
-      })
-      circle.style.transform = `translate(${mat1.m41 + dxToRight}px, ${mat1.m42}px) rotate(360deg)`
+      circle.style.transition = `right ${T.move}ms ease, top ${T.move}ms ease, transform ${T.move}ms ease`
+      circle.style.right = '0%'
+      circle.style.transform = 'translate(0%, -50%) rotate(360deg)'
 
       setTimeout(() => {
-        // Lire position réelle après le mouvement pour calculer le delta Y exact vers le haut
-        const rect2 = circle.getBoundingClientRect()
-        const mat2  = new DOMMatrix(getComputedStyle(circle).transform)
-        const dyToTop = loaderRect.top - rect2.top
-
-        circle.style.transform = `translate(${mat2.m41}px, ${mat2.m42 + dyToTop}px) rotate(360deg)`
+        circle.style.top = '0%'
+        circle.style.transform = 'translate(0%, 0%) rotate(360deg)'
 
         setTimeout(() => {
           document.body.style.overflow = ''
