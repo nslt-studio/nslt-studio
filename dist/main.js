@@ -1,4 +1,4 @@
-function y(e) {
+function S(e) {
   const n = e.children.length, t = Array.from({ length: n }, (o, r) => r);
   for (let o = n - 1; o > 0; o--) {
     const r = Math.floor(Math.random() * (o + 1));
@@ -8,21 +8,21 @@ function y(e) {
     o.style.order = t[r];
   });
 }
-function d(e) {
+function b(e) {
   const t = () => {
     e.forEach((r) => {
-      const a = r.getBoundingClientRect();
-      if (a.top >= 0) {
+      const l = r.getBoundingClientRect();
+      if (l.top >= 0) {
         r.style.opacity = "1";
         return;
       }
-      const s = a.height - 120;
-      if (s <= 0) {
-        r.style.opacity = a.bottom <= 120 ? "0" : "1";
+      const d = l.height - 120;
+      if (d <= 0) {
+        r.style.opacity = l.bottom <= 120 ? "0" : "1";
         return;
       }
-      const l = Math.min(1, -a.top / s);
-      r.style.opacity = 1 - l * l;
+      const u = Math.min(1, -l.top / d);
+      r.style.opacity = 1 - u * u;
     });
   };
   let o = !1;
@@ -32,10 +32,55 @@ function d(e) {
     }), o = !0);
   }, { passive: !0 }), t();
 }
-function m() {
+async function T() {
+  const e = "c9496452bd623b32565ddf7e6973d68c", n = window.innerWidth >= 768 ? "1080p" : "720p", t = window.innerWidth >= 768 ? 960 : 640, o = document.querySelectorAll(".work-video-inner[vimeo-id]");
+  if (!o.length) return;
+  const r = [...new Set([...o].map((a) => a.getAttribute("vimeo-id")).filter(Boolean))], l = await Promise.allSettled(
+    r.map(
+      (a) => fetch(`https://api.vimeo.com/videos/${a}?fields=pictures,files`, {
+        headers: { Authorization: `Bearer ${e}` }
+      }).then((p) => p.ok ? p.json().then((f) => ({ id: a, data: f })) : { id: a, data: {} }).catch(() => ({ id: a, data: {} }))
+    )
+  ), d = {};
+  l.forEach((a) => {
+    var h;
+    if (a.status !== "fulfilled") return;
+    const { id: p, data: f } = a.value, m = ((h = f.pictures) == null ? void 0 : h.sizes) ?? [], y = m.find((c) => c.width >= t) ?? m[m.length - 1], i = f.files ?? [], s = i.find((c) => c.rendition === n) ?? i.find((c) => c.quality === "hd") ?? i[0];
+    d[p] = { poster: (y == null ? void 0 : y.link) ?? "", mp4: (s == null ? void 0 : s.link) ?? "" };
+  });
+  const u = new IntersectionObserver((a, p) => {
+    a.forEach((f) => {
+      if (!f.isIntersecting) return;
+      const m = f.target, y = d[m.getAttribute("vimeo-id")];
+      if (!y) return;
+      const i = m.querySelector(".video-poster");
+      if (i && y.poster) {
+        i.style.opacity = "0", i.style.transition = "opacity 0.6s ease-in-out", i.src = y.poster;
+        const c = () => {
+          i.style.opacity = "1";
+        };
+        i.complete && i.naturalWidth ? c() : i.addEventListener("load", c, { once: !0 });
+      }
+      const s = m.querySelector("video"), h = s == null ? void 0 : s.querySelector("source[data-src]");
+      if (h && y.mp4 && !h.src) {
+        s.style.opacity = "0", s.style.transition = "opacity 0.6s ease-in-out", h.src = y.mp4, s.load();
+        const c = () => {
+          s.style.opacity = "1";
+        };
+        s.readyState >= 2 ? c() : s.addEventListener("loadeddata", c, { once: !0 }), new IntersectionObserver(([g]) => {
+          g.isIntersecting ? s.play().catch(() => {
+          }) : s.pause();
+        }, { threshold: 0 }).observe(s);
+      }
+      p.unobserve(m);
+    });
+  }, { rootMargin: "300px" });
+  o.forEach((a) => u.observe(a));
+}
+function q() {
   const e = [];
   document.querySelectorAll(".work-list .work-item .work-media").forEach((n) => {
-    y(n), e.push(...n.children), n.querySelectorAll("img").forEach((t) => {
+    S(n), e.push(...n.children), n.querySelectorAll("img").forEach((t) => {
       t.style.opacity = "0", t.style.transition = "opacity 0.6s ease-in-out";
       const o = () => {
         t.style.opacity = "1";
@@ -51,11 +96,11 @@ function m() {
         }) : t.pause();
       }, { threshold: 0 }).observe(t);
     });
-  }), e.length && d(e);
+  }), e.length && b(e);
 }
-let u, c, i;
-function f() {
-  clearInterval(u);
+let w, E, v;
+function k() {
+  clearInterval(w);
   const e = document.querySelectorAll('[aria-label="time"]');
   if (!e.length) return;
   const n = () => {
@@ -68,20 +113,20 @@ function f() {
     });
     e.forEach((o) => o.textContent = `${t} CET`);
   };
-  n(), u = setInterval(n, 1e3);
+  n(), w = setInterval(n, 1e3);
 }
-function p() {
+function A() {
   const e = document.querySelectorAll('[aria-label="freelance"]');
   if (!e.length) return;
-  cancelAnimationFrame(c), i = null;
+  cancelAnimationFrame(E), v = null;
   const n = 600, t = (o) => {
-    i || (i = o);
-    const r = (o - i) % (n * 2) / n, a = r < 1 ? 1 - r : r - 1;
-    e.forEach((s) => s.style.opacity = a), c = requestAnimationFrame(t);
+    v || (v = o);
+    const r = (o - v) % (n * 2) / n, l = r < 1 ? 1 - r : r - 1;
+    e.forEach((d) => d.style.opacity = l), E = requestAnimationFrame(t);
   };
-  e.forEach((o) => o.style.opacity = "1"), c = requestAnimationFrame(t);
+  e.forEach((o) => o.style.opacity = "1"), E = requestAnimationFrame(t);
 }
-function h() {
+function I() {
   const e = {
     delay: 600,
     rotate: 600,
@@ -99,7 +144,7 @@ function h() {
     }, e.rotate + e.holdRotate);
   }, e.delay));
 }
-function E() {
+function F() {
   const e = document.querySelector("#mode");
   if (!e) return;
   let n = localStorage.getItem("mode") || "white";
@@ -110,35 +155,35 @@ function E() {
     t(n === "black" ? "white" : "black");
   });
 }
-function v() {
+function O() {
   const e = document.querySelector(".inactive"), n = document.querySelector(".overlay");
   if (!e) return;
   const t = e.querySelector("video");
   let o;
   if (t) {
     t.setAttribute("playsinline", ""), t.muted = !0, t.style.opacity = "0", t.style.transition = "opacity 0.6s ease-in-out";
-    const l = () => {
+    const u = () => {
       t.style.opacity = "1";
     };
-    t.readyState >= 2 ? l() : t.addEventListener("loadeddata", l, { once: !0 });
+    t.readyState >= 2 ? u() : t.addEventListener("loadeddata", u, { once: !0 });
   }
   const r = () => {
     e.style.opacity = "1", e.style.pointerEvents = "auto", n && (n.style.opacity = "1", n.style.pointerEvents = "auto"), t == null || t.play().catch(() => {
     });
-  }, a = () => {
+  }, l = () => {
     e.style.opacity = "0", e.style.pointerEvents = "none", n && (n.style.opacity = "0", n.style.pointerEvents = "none"), t == null || t.pause();
-  }, s = () => {
-    a(), clearTimeout(o), o = setTimeout(r, 15e3);
+  }, d = () => {
+    l(), clearTimeout(o), o = setTimeout(r, 15e3);
   };
   ["mousemove", "scroll", "touchstart"].forEach(
-    (l) => window.addEventListener(l, s, { passive: !0 })
-  ), s();
+    (u) => window.addEventListener(u, d, { passive: !0 })
+  ), d();
 }
-function S() {
+function L() {
   document.querySelectorAll(".work-list .work-item").forEach((t, o) => {
     const r = t.querySelector("p[data-index]");
     r && (r.textContent = String(o + 1).padStart(3, "0"));
-  }), E(), h(), m(), f(), p(), v();
+  }), F(), I(), q(), T(), k(), A(), O();
   const e = document.querySelector("#top"), n = document.querySelector(".about");
   e && n && (new IntersectionObserver(([t]) => {
     const o = t.boundingClientRect.bottom <= 0;
@@ -147,4 +192,4 @@ function S() {
 }
 history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
-S();
+L();

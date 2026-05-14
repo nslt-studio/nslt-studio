@@ -1,4 +1,4 @@
-import { initMedia } from '../media.js'
+import { initMedia, initVimeo } from '../media.js'
 import { initClock, initFreelancePulse } from '../clock.js'
 
 function initLoader() {
@@ -121,6 +121,7 @@ export function initHome() {
   initMode()
   initLoader()
   initMedia()
+  initVimeo()
   initClock()
   initFreelancePulse()
   initInactive()
