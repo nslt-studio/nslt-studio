@@ -1,140 +1,110 @@
-import { initMedia, initVimeo } from '../media.js'
-import { initClock, initFreelancePulse } from '../clock.js'
+import EmblaCarousel from 'embla-carousel'
 
-function initLoader() {
-  const T = {
-    delay:      600,
-    rotate:     600,
-    holdRotate: 300,
-    move:       400,
-    loaderFade: 400,
+const STAGGER = 100
+
+function activateSlide(slide) {
+  const img = slide.querySelector('img')
+  if (img) img.style.opacity = '1'
+
+  const video = slide.querySelector('video')
+  if (!video) return
+
+  video.style.opacity = '1'
+
+  const source = video.querySelector('source[data-src]')
+  if (source && !source.src && source.dataset.src) {
+    source.src = source.dataset.src
+    video.load()
   }
 
-  const loader = document.querySelector('.loader')
-  const circle = loader?.querySelector('.circle-inner')
-  if (!loader || !circle) return
-
-  document.body.style.overflow = 'hidden'
-
-  circle.style.transition = 'none'
-  circle.style.transformOrigin = 'center center'
-  circle.style.right = '50%'
-  circle.style.top = '50%'
-  circle.style.transform = 'translate(50%, -50%) rotate(0deg)'
-
-  circle.getBoundingClientRect()
-  circle.style.transition = `transform ${T.rotate}ms ease`
-
-  setTimeout(() => {
-    circle.style.transform = 'translate(50%, -50%) rotate(360deg)'
-
-    setTimeout(() => {
-      circle.style.transition = `right ${T.move}ms ease, top ${T.move}ms ease, transform ${T.move}ms ease`
-      circle.style.right = '0%'
-      circle.style.transform = 'translate(0%, -50%) rotate(360deg)'
-
-      setTimeout(() => {
-        circle.style.top = '0%'
-        circle.style.transform = 'translate(0%, 0%) rotate(360deg)'
-
-        setTimeout(() => {
-          document.body.style.overflow = ''
-          loader.style.transition = `opacity ${T.loaderFade}ms ease`
-          loader.style.opacity = '0'
-          setTimeout(() => loader.remove(), T.loaderFade)
-        }, T.move)
-      }, T.move)
-    }, T.rotate + T.holdRotate)
-  }, T.delay)
+  if (video.readyState >= 3) {
+    video.play().catch(() => {})
+  } else {
+    video.addEventListener('canplay', () => video.play().catch(() => {}), { once: true })
+  }
 }
 
-function initMode() {
-  const btn = document.querySelector('#mode')
-  if (!btn) return
-
-  let mode = localStorage.getItem('mode') || 'white'
-
-  const apply = (m) => {
-    document.documentElement.classList.remove('mode-white', 'mode-black')
-    document.documentElement.classList.add(`mode-${m}`)
-    localStorage.setItem('mode', m)
-    mode = m
-  }
-
-  apply(mode)
-
-  btn.addEventListener('click', () => {
-    apply(mode === 'black' ? 'white' : 'black')
-  })
-}
-
-function initInactive() {
-  const el = document.querySelector('.inactive')
-  const overlay = document.querySelector('.overlay')
-  if (!el) return
-
-  const video = el.querySelector('video')
-  let timer
-
-  if (video) {
-    video.setAttribute('playsinline', '')
-    video.muted = true
-    video.style.opacity = '0'
-    video.style.transition = 'opacity 0.6s ease-in-out'
-    const reveal = () => { video.style.opacity = '1' }
-    video.readyState >= 2 ? reveal() : video.addEventListener('loadeddata', reveal, { once: true })
-  }
-
-  const show = () => {
-    el.style.opacity = '1'
-    el.style.pointerEvents = 'auto'
-    if (overlay) { overlay.style.opacity = '1'; overlay.style.pointerEvents = 'auto' }
-    video?.play().catch(() => {})
-  }
-
-  const hide = () => {
-    el.style.opacity = '0'
-    el.style.pointerEvents = 'none'
-    if (overlay) { overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none' }
-    video?.pause()
-  }
-
-  const reset = () => {
-    hide()
-    clearTimeout(timer)
-    timer = setTimeout(show, 15000)
-  }
-
-  ;['mousemove', 'scroll', 'touchstart'].forEach(e =>
-    window.addEventListener(e, reset, { passive: true })
-  )
-
-  reset()
+function deactivateSlide(slide) {
+  slide.querySelector('video')?.pause()
 }
 
 export function initHome() {
-  document.querySelectorAll('.work-list .work-item').forEach((item, i) => {
-    const p = item.querySelector('p[data-index]')
-    if (p) p.textContent = String(i + 1).padStart(3, '0')
+  const header = document.querySelector('.header')
+  const work   = document.querySelector('.work')
+
+  if (header) header.style.opacity = '1'
+  setTimeout(() => {
+    if (work) { work.style.opacity = '1'; work.style.transform = 'translateY(0)' }
+  }, STAGGER)
+
+  let closeCurrentDesc = null
+
+  document.querySelectorAll('.work-item').forEach(item => {
+    const viewport = item.querySelector('.embla__viewport')
+    if (!viewport) return
+
+    const embla = EmblaCarousel(viewport, { loop: true, watchDrag: false, duration: 0 })
+    const slides = embla.slideNodes()
+    if (!slides.length) return
+
+    const dots    = [...item.querySelectorAll('.dot-inner')]
+    const infoBtn = item.querySelector('.more-button')
+    const emblaEl = item.querySelector('.embla')
+    const descEl  = item.querySelector('.description')
+
+    const updateDots = (index) => {
+      dots.forEach((di, i) => di.querySelector('.dot')?.classList.toggle('active', i === index))
+    }
+
+    let open = false
+
+    const closeDesc = () => {
+      if (!open) return
+      open = false
+      emblaEl.style.opacity       = '1'
+      emblaEl.style.pointerEvents = 'auto'
+      descEl.style.opacity        = '0'
+      descEl.style.pointerEvents  = 'none'
+      infoBtn.textContent         = '+'
+      if (closeCurrentDesc === closeDesc) closeCurrentDesc = null
+    }
+
+    dots.forEach((di, i) => di.addEventListener('click', () => {
+      closeCurrentDesc?.()
+      embla.scrollTo(i)
+    }))
+
+    let current = 0
+    activateSlide(slides[0])
+    updateDots(0)
+
+    embla.on('select', () => {
+      deactivateSlide(slides[current])
+      current = embla.selectedScrollSnap()
+      activateSlide(slides[current])
+      updateDots(current)
+    })
+
+    item.querySelector('.embla__prev')?.addEventListener('click', () => { closeCurrentDesc?.(); embla.scrollPrev() })
+    item.querySelector('.embla__next')?.addEventListener('click', () => { closeCurrentDesc?.(); embla.scrollNext() })
+
+    item.querySelectorAll('[data-url]').forEach(el => {
+      const url = el.getAttribute('href')
+      if (!url) return
+      try { el.textContent = new URL(url).hostname.replace(/^www\./, '') } catch {}
+    })
+
+    if (infoBtn && emblaEl && descEl) {
+      infoBtn.addEventListener('click', () => {
+        if (!open && closeCurrentDesc) closeCurrentDesc()
+        open = !open
+        emblaEl.style.opacity       = open ? '0' : '1'
+        emblaEl.style.pointerEvents = open ? 'none' : 'auto'
+        descEl.style.opacity        = open ? '1' : '0'
+        descEl.style.pointerEvents  = open ? 'auto' : 'none'
+        infoBtn.textContent         = open ? '-' : '+'
+        closeCurrentDesc            = open ? closeDesc : null
+      })
+    }
   })
-
-  initMode()
-  initLoader()
-  initMedia()
-  initVimeo()
-  initClock()
-  initFreelancePulse()
-  initInactive()
-
-  const btn = document.querySelector('#top')
-  const about = document.querySelector('.about')
-  if (btn && about) {
-    new IntersectionObserver(([entry]) => {
-      const past = entry.boundingClientRect.bottom <= 0
-      btn.style.transform = past ? 'translate(-50%, 0%)' : 'translate(-50%, 100%)'
-      btn.style.opacity = past ? '1' : '0'
-    }).observe(about)
-
-    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
-  }
 }

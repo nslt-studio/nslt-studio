@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "embla-carousel": "^8.6.0",
-    "embla-carousel-auto-scroll": "^8.6.0"
+    "embla-carousel-auto-scroll": "^8.6.0",
+    "swup": "^4.9.0"
   },
   "devDependencies": {
     "@ngrok/ngrok": "^1.7.0",

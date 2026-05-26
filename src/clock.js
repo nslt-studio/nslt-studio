@@ -1,43 +1,53 @@
+const DOT_DURATION = 1500
+const DOT_MAX      = 1.25
+const DOT_MIN      = 0.75
+
 let clockInterval
-let freelanceRaf
-let freelanceStart
 
 export function initClock() {
   clearInterval(clockInterval)
-  const timeEls = document.querySelectorAll('[aria-label="time"]')
-  if (!timeEls.length) return
 
-  const update = () => {
-    const time = new Date().toLocaleTimeString('fr-FR', {
+  const dateEl = document.querySelector('#date')
+  const timeEl = document.querySelector('#time')
+  if (!dateEl && !timeEl) return
+
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('en-US', {
       timeZone: 'Europe/Paris',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
     })
-    timeEls.forEach(el => (el.textContent = `${time} CET`))
   }
-  update()
-  clockInterval = setInterval(update, 1000)
+
+  if (timeEl) {
+    const update = () => {
+      timeEl.textContent = new Date().toLocaleTimeString('fr-FR', {
+        timeZone: 'Europe/Paris',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      })
+    }
+    update()
+    clockInterval = setInterval(update, 1000)
+  }
 }
 
-export function initFreelancePulse() {
-  const els = document.querySelectorAll('[aria-label="freelance"]')
-  if (!els.length) return
+export function initFooterDot() {
+  const dot = document.querySelector('.footer-dot')
+  if (!dot) return
 
-  cancelAnimationFrame(freelanceRaf)
-  freelanceStart = null
-
-  const duration = 600
-
+  let start = null
   const tick = (ts) => {
-    if (!freelanceStart) freelanceStart = ts
-    const t = ((ts - freelanceStart) % (duration * 2)) / duration
-    const opacity = t < 1 ? 1 - t : t - 1
-    els.forEach(el => (el.style.opacity = opacity))
-    freelanceRaf = requestAnimationFrame(tick)
+    if (!start) start = ts
+    const t = ((ts - start) % DOT_DURATION) / DOT_DURATION
+    const wave = t < 0.5 ? t * 2 : (1 - t) * 2
+    dot.style.transform = `scale(${DOT_MAX - (DOT_MAX - DOT_MIN) * wave})`
+    dot.style.opacity   = `${1 - wave}`
+    requestAnimationFrame(tick)
   }
-
-  els.forEach(el => (el.style.opacity = '1'))
-  freelanceRaf = requestAnimationFrame(tick)
+  requestAnimationFrame(tick)
 }
+
