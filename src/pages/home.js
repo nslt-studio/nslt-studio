@@ -4,7 +4,10 @@ const STAGGER = 100
 
 function activateSlide(slide) {
   const img = slide.querySelector('img')
-  if (img) img.style.opacity = '1'
+  if (img) {
+    const show = () => { img.style.opacity = '1' }
+    img.complete && img.naturalWidth ? show() : img.addEventListener('load', show, { once: true })
+  }
 
   const video = slide.querySelector('video')
   if (!video) return
@@ -30,16 +33,20 @@ function deactivateSlide(slide) {
 
 export function initHome() {
   const header = document.querySelector('.header')
-  const work   = document.querySelector('.work')
-
   if (header) header.style.opacity = '1'
-  setTimeout(() => {
-    if (work) { work.style.opacity = '1'; work.style.transform = 'translateY(0)' }
-  }, STAGGER)
+
+  document.querySelectorAll('.work-list .work-item').forEach((item, i) => {
+    setTimeout(() => {
+      item.style.opacity   = '1'
+      item.style.transform = 'translateY(0)'
+    }, STAGGER * (i + 1))
+  })
 
   let closeCurrentDesc = null
 
   document.querySelectorAll('.work-item').forEach(item => {
+    item.addEventListener('click', () => item.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+
     const viewport = item.querySelector('.embla__viewport')
     if (!viewport) return
 

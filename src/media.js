@@ -1,6 +1,23 @@
+const CACHE_KEY = 'vimeo_cache'
+const CACHE_TTL = 10 * 60 * 1000 // 10 minutes
+
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return {}
+    const { ts, data } = JSON.parse(raw)
+    if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(CACHE_KEY); return {} }
+    return data
+  } catch { return {} }
+}
+
+function writeCache(data) {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })) } catch {}
+}
+
 export async function initVimeo() {
   const TOKEN        = 'c9496452bd623b32565ddf7e6973d68c'
-  const RENDITION    = window.innerWidth >= 768 ? '720p' : '540p'
+  const RENDITION    = window.innerWidth >= 768 ? '1080p' : '720p'
   const TARGET_WIDTH = 200
 
   const items = document.querySelectorAll('.work-video[vimeo-id]')
@@ -8,34 +25,40 @@ export async function initVimeo() {
 
   const ids = [...new Set([...items].map(el => el.getAttribute('vimeo-id')).filter(Boolean))]
 
-  const results = await Promise.allSettled(
-    ids.map(id =>
-      fetch(`https://api.vimeo.com/videos/${id}?fields=pictures,files`, {
-        headers: { Authorization: `Bearer ${TOKEN}` }
-      })
-      .then(r => r.ok ? r.json().then(data => ({ id, data })) : { id, data: {} })
-      .catch(() => ({ id, data: {} }))
-    )
-  )
+  const stored = readCache()
+  const missing = ids.filter(id => !stored[id])
 
-  const cache = {}
-  results.forEach(result => {
-    if (result.status !== 'fulfilled') return
-    const { id, data } = result.value
-    const sizes    = data.pictures?.sizes ?? []
-    const bestSize = sizes.find(s => s.width >= TARGET_WIDTH) ?? sizes[sizes.length - 1]
-    const files    = data.files ?? []
-    const file     = files.find(f => f.rendition === RENDITION)
-                  ?? files.find(f => f.quality === 'hd')
-                  ?? files[0]
-    cache[id] = { poster: bestSize?.link ?? '', mp4: file?.link ?? '' }
-  })
+  if (missing.length) {
+    const results = await Promise.allSettled(
+      missing.map(id =>
+        fetch(`https://api.vimeo.com/videos/${id}?fields=pictures,files`, {
+          headers: { Authorization: `Bearer ${TOKEN}` }
+        })
+        .then(r => r.ok ? r.json().then(data => ({ id, data })) : { id, data: {} })
+        .catch(() => ({ id, data: {} }))
+      )
+    )
+
+    results.forEach(result => {
+      if (result.status !== 'fulfilled') return
+      const { id, data } = result.value
+      const sizes    = data.pictures?.sizes ?? []
+      const bestSize = sizes.find(s => s.width >= TARGET_WIDTH) ?? sizes[sizes.length - 1]
+      const files    = data.files ?? []
+      const file     = files.find(f => f.rendition === RENDITION)
+                    ?? files.find(f => f.quality === 'hd')
+                    ?? files[0]
+      stored[id] = { poster: bestSize?.link ?? '', mp4: file?.link ?? '' }
+    })
+
+    writeCache(stored)
+  }
 
   const observer = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return
       const wrapper = entry.target
-      const assets  = cache[wrapper.getAttribute('vimeo-id')]
+      const assets  = stored[wrapper.getAttribute('vimeo-id')]
       if (!assets) return
 
       const img = wrapper.querySelector('.video-poster')
