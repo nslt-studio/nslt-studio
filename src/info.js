@@ -1,4 +1,4 @@
-const OPEN_DELAY  = 350
+const OPEN_DELAY  = 400
 const CLOSE_DELAY = 150
 
 export function initInfo() {

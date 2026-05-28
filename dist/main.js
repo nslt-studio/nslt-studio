@@ -1351,7 +1351,7 @@ function ze() {
     n(), Ht = setInterval(n, 1e3);
   }
 }
-const Ve = 350, He = 150;
+const Ve = 400, He = 150;
 function Ge() {
   const t = document.querySelector(".info"), e = document.querySelector("#infoButton"), n = document.querySelector(".main-wrapper"), o = document.querySelector("#infoText");
   if (!t || !e || !n) return;
