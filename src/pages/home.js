@@ -42,8 +42,6 @@ export function initHome() {
     }, STAGGER * (i + 1))
   })
 
-  let closeCurrentDesc = null
-
   document.querySelectorAll('.work-item').forEach(item => {
     item.addEventListener('click', () => item.scrollIntoView({ behavior: 'smooth', block: 'center' }))
 
@@ -54,32 +52,13 @@ export function initHome() {
     const slides = embla.slideNodes()
     if (!slides.length) return
 
-    const dots    = [...item.querySelectorAll('.dot-inner')]
-    const infoBtn = item.querySelector('.more-button')
-    const emblaEl = item.querySelector('.embla')
-    const descEl  = item.querySelector('.description')
+    const dots = [...item.querySelectorAll('.dot-inner')]
 
     const updateDots = (index) => {
       dots.forEach((di, i) => di.querySelector('.dot')?.classList.toggle('active', i === index))
     }
 
-    let open = false
-
-    const closeDesc = () => {
-      if (!open) return
-      open = false
-      emblaEl.style.opacity       = '1'
-      emblaEl.style.pointerEvents = 'auto'
-      descEl.style.opacity        = '0'
-      descEl.style.pointerEvents  = 'none'
-      infoBtn.textContent         = '+'
-      if (closeCurrentDesc === closeDesc) closeCurrentDesc = null
-    }
-
-    dots.forEach((di, i) => di.addEventListener('click', () => {
-      closeCurrentDesc?.()
-      embla.scrollTo(i)
-    }))
+    dots.forEach((di, i) => di.addEventListener('click', () => embla.scrollTo(i)))
 
     let current = 0
     activateSlide(slides[0])
@@ -92,26 +71,8 @@ export function initHome() {
       updateDots(current)
     })
 
-    item.querySelector('.embla__prev')?.addEventListener('click', () => { closeCurrentDesc?.(); embla.scrollPrev() })
-    item.querySelector('.embla__next')?.addEventListener('click', () => { closeCurrentDesc?.(); embla.scrollNext() })
+    item.querySelector('.embla__prev')?.addEventListener('click', () => embla.scrollPrev())
+    item.querySelector('.embla__next')?.addEventListener('click', () => embla.scrollNext())
 
-    item.querySelectorAll('[data-url]').forEach(el => {
-      const url = el.getAttribute('href')
-      if (!url) return
-      try { el.textContent = new URL(url).hostname.replace(/^www\./, '') } catch {}
-    })
-
-    if (infoBtn && emblaEl && descEl) {
-      infoBtn.addEventListener('click', () => {
-        if (!open && closeCurrentDesc) closeCurrentDesc()
-        open = !open
-        emblaEl.style.opacity       = open ? '0' : '1'
-        emblaEl.style.pointerEvents = open ? 'none' : 'auto'
-        descEl.style.opacity        = open ? '1' : '0'
-        descEl.style.pointerEvents  = open ? 'auto' : 'none'
-        infoBtn.textContent         = open ? '-' : '+'
-        closeCurrentDesc            = open ? closeDesc : null
-      })
-    }
   })
 }
